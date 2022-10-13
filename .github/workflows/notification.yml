@@ -1,0 +1,28 @@
+name: test-build-release
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+      - name: Notification
+        uses: mikesprague/teams-incoming-webhook-action@v1
+        with:
+          github-token: ${{ github.token }}
+          webhook-url: ${{ secrets.TEAMS_WEBHOOK_URL }}
+          title: "Notification Test"
+          message: "This is an example of a simple notification with a title and a body"
+      - name: Deploy Started Notification
+        uses: mikesprague/teams-incoming-webhook-action@v1
+        with:
+          github-token: ${{ github.token }}
+          webhook-url: ${{ secrets.MS_TEAMS_WEBHOOK_URL }}
+          deploy-card: true
+          title: "Deployment Started"
+          color: "info"
