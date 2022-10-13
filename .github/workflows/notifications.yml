@@ -13,13 +13,14 @@ on:
 jobs:
 
   release:
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:
       - uses: aliencube/microsoft-teams-actions@v0.8.0
         with:
           webhook_uri: ${{ secrets.TEAMS_WEBHOOK_URL }}
-          title: '&#9989; New commit: "${{ github.event.commits[0].message }}"'
-          summary: '&#9989; New commit: "${{ github.event.commits[0].message }}"'
+          title: '&#9989;  New commit: "${{ github.event.commits[0].message }}"'
+          summary: '&#9989;  New commit: "${{ github.event.commits[0].message }}"'
           theme_color: "07a630"
           sections: '[{ "activityTitle": "[${{ github.event.commits[0].committer.name }}](${{ github.event.commits[0].author.html_url }})", "activitySubtitle": "- &#x2795; ${{ github.event.commits[0].stats.addtions }} additions\n- &#x2796; ${{ github.event.commits[0].stats.addtions }} deletions", "activityImage": "${{ github.event.commits[0].author.avatar_url }}" }]'
           actions: '[{ "@type": "OpenUri", "name": "Show commit", "targets": [{ "os": "default", "uri": "${{ github.event.html_url }}" }] }]'
@@ -31,8 +32,8 @@ jobs:
       - uses: aliencube/microsoft-teams-actions@v0.8.0
         with:
           webhook_uri: ${{ secrets.TEAMS_WEBHOOK_URL }}
-          title: 'New issue #${{ github.event.issue.number }}: "${{ github.event.issue.title }}"'
-          summary: 'New issue #${{ github.event.issue.number }}: "${{ github.event.issue.title }}"'
+          title: '&#128293;  New issue #${{ github.event.issue.number }}: "${{ github.event.issue.title }}"'
+          summary: '&#128293;  New issue #${{ github.event.issue.number }}: "${{ github.event.issue.title }}"'
           sections: '[{ "activityTitle": "[${{ github.event.issue.user.login }}](${{ github.event.issue.user.html_url }})", "activitySubtitle": "${{ github.event.issue.body }}", "activityImage": "${{ github.event.issue.user.avatar_url }}" }]'
           actions: '[{ "@type": "OpenUri", "name": "View issue", "targets": [{ "os": "default", "uri": "${{ github.event.issue.html_url }}" }] }]'
           theme_color: 'f83838'
@@ -44,8 +45,8 @@ jobs:
       - uses: aliencube/microsoft-teams-actions@v0.8.0
         with:
           webhook_uri: ${{ secrets.TEAMS_WEBHOOK_URL }}
-          title: 'Issue #${{ github.event.issue.number }} closed: "${{ github.event.issue.title }}"'
-          summary: 'Issue #${{ github.event.issue.number }} closed: "${{ github.event.issue.title }}"'
+          title: '&#x1F3C1;  Issue #${{ github.event.issue.number }} closed: "${{ github.event.issue.title }}"'
+          summary: '&#x1F3C1;  Issue #${{ github.event.issue.number }} closed: "${{ github.event.issue.title }}"'
           actions: '[{ "@type": "OpenUri", "name": "View issue", "targets": [{ "os": "default", "uri": "${{ github.event.issue.html_url }}" }] }]'
           theme_color: '58a6ff'
 
@@ -56,8 +57,8 @@ jobs:
       - uses: aliencube/microsoft-teams-actions@v0.8.0
         with:
           webhook_uri: ${{ secrets.TEAMS_WEBHOOK_URL }}
-          title: 'New comment on issue #${{ github.event.issue.number }}: "${{ github.event.issue.title }}"'
-          summary: 'New comment on issue #${{ github.event.issue.number }}: "${{ github.event.issue.title }}"'
+          title: '&#x1F4AC;  New comment on issue #${{ github.event.issue.number }}: "${{ github.event.issue.title }}"'
+          summary: '&#x1F4AC;  New comment on issue #${{ github.event.issue.number }}: "${{ github.event.issue.title }}"'
           sections: '[{ "activityTitle": "[${{ github.event.comment.user.login }}](${{ github.event.comment.user.html_url }})", "activitySubtitle": "${{ github.event.comment.body }}", "activityImage": "${{ github.event.comment.user.avatar_url }}" }]'
           actions: '[{ "@type": "OpenUri", "name": "View comment", "targets": [{ "os": "default", "uri": "${{ github.event.comment.html_url }}" }] }]'
           theme_color: '58a6ff'
@@ -69,6 +70,6 @@ jobs:
       - uses: aliencube/microsoft-teams-actions@v0.8.0
         with:
           webhook_uri: ${{ secrets.TEAMS_WEBHOOK_URL }}
-          title: '&#x2B50; New star!'
-          summary: '&#x2B50; New star!'
+          title: '&#x2B50;  New star!'
+          summary: '&#x2B50;  New star!'
           theme_color: 'e3c700'
