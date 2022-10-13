@@ -22,7 +22,7 @@ jobs:
         uses: mikesprague/teams-incoming-webhook-action@v1
         with:
           github-token: ${{ github.token }}
-          webhook-url: ${{ secrets.MS_TEAMS_WEBHOOK_URL }}
+          webhook-url: ${{ secrets.TEAMS_WEBHOOK_URL }}
           deploy-card: true
           title: "Deployment Started"
-          color: "info"
+          color: "success"
