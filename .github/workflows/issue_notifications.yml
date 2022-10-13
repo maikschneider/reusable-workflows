@@ -4,29 +4,29 @@ on: issues
 jobs:
 
   issue_new:
-    if: ${{ github.event.action }} == 'opened'
+    if: github.event.action == 'opened'
     runs-on: ubuntu-latest
     steps:
       - name: Notification
         uses: aliencube/microsoft-teams-actions@v0.8.0
         with:
           webhook_uri: ${{ secrets.TEAMS_WEBHOOK_URL }}
-          title: "New issue #${{ github.event.issue.number }}: ${{ github.event.issue.title }}"
-          summary: "New issue #${{ github.event.issue.number }}: ${{ github.event.issue.title }}"
-          sections: '[{ "activityTitle": "[${{ github.event.issue.user.login }}](${{ github.event.issue.user.html_url }})", "activitySubtitle": "Event name: ${{ github.event_name }}, Issue action: ${{ github.event.action }}", "activityImage": "${{ github.event.issue.user.avatar_url }}", "text": "${{ github.event.issue.body }}" }]'
+          title: 'New issue #${{ github.event.issue.number }}: "${{ github.event.issue.title }}"'
+          summary: 'New issue #${{ github.event.issue.number }}: "${{ github.event.issue.title }}"'
+          sections: '[{ "activityTitle": "[${{ github.event.issue.user.login }}](${{ github.event.issue.user.html_url }})", "activitySubtitle": "${{ github.event.issue.body }}", "activityImage": "${{ github.event.issue.user.avatar_url }}"" }]'
           actions: '[{ "@type": "OpenUri", "name": "View issue", "targets": [{ "os": "default", "uri": "${{ github.event.issue.html_url }}" }] }]'
           theme_color: 'f83838'
   
   issue_closed:
-    if: ${{ github.event.action }} == 'closed'
+    if: github.event.action == 'closed'
     runs-on: ubuntu-latest
     steps:
       - name: Notification
         uses: aliencube/microsoft-teams-actions@v0.8.0
         with:
           webhook_uri: ${{ secrets.TEAMS_WEBHOOK_URL }}
-          title: "Issue #${{ github.event.issue.number }} closed"
-          summary: "Issue #${{ github.event.issue.number }} closed"
+          title: 'Issue #${{ github.event.issue.number }} closed: "${{ github.event.issue.title }}"'
+          summary: 'Issue #${{ github.event.issue.number }} closed: "${{ github.event.issue.title }}"'
           sections: '[{ "text": "${{ github.event.issue.title }}" }]'
           actions: '[{ "@type": "OpenUri", "name": "View issue", "targets": [{ "os": "default", "uri": "${{ github.event.issue.html_url }}" }] }]'
           theme_color: '07a630'
