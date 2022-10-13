@@ -27,6 +27,5 @@ jobs:
           webhook_uri: ${{ secrets.TEAMS_WEBHOOK_URL }}
           title: 'Issue #${{ github.event.issue.number }} closed: "${{ github.event.issue.title }}"'
           summary: 'Issue #${{ github.event.issue.number }} closed: "${{ github.event.issue.title }}"'
-          sections: '[{ "text": "${{ github.event.issue.title }}" }]'
           actions: '[{ "@type": "OpenUri", "name": "View issue", "targets": [{ "os": "default", "uri": "${{ github.event.issue.html_url }}" }] }]'
           theme_color: '07a630'
