@@ -10,8 +10,7 @@ jobs:
       - name: Notification
         uses: aliencube/microsoft-teams-actions@v0.8.0
         with:
-          github-token: ${{ github.token }}
-          webhook-url: ${{ secrets.TEAMS_WEBHOOK_URL }}
+          webhook_uri: ${{ secrets.TEAMS_WEBHOOK_URL }}
           summary: "New issue #${{ github.event.issue.number }}: ${{ github.event.issue.title }}"
           sections: '[{ "activityTitle": "${{ github.event.issue.user.login }}", "activityImage": "${{ github.event.issue.user.avatar_url }}", "text": "${{ github.event.issue.body }}" }]'
           actions: '[{ "@type": "OpenUri", "name": "View issue", "targets": [{ "os": "default", "uri": "${{ github.event.issue.url }}" }] }]'

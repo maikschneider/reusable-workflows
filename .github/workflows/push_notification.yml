@@ -12,8 +12,7 @@ jobs:
       - name: Notification
         uses: aliencube/microsoft-teams-actions@v0.8.0
         with:
-          github-token: ${{ github.token }}
-          webhook-url: ${{ secrets.TEAMS_WEBHOOK_URL }}
+          webhook_uri: ${{ secrets.TEAMS_WEBHOOK_URL }}
           title: "Neuer Commit"
           summary: "<Message Summary>"
           text: "<Message Text>"
