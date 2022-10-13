@@ -62,7 +62,7 @@ jobs:
             actions: '[{ "@type": "OpenUri", "name": "View comment", "targets": [{ "os": "default", "uri": "${{ github.event.comment.html_url }}" }] }]'
             theme_color: '58a6ff'
     
-    issue_comment_new:
+    watch_star_new:
       if: github.event_name == 'watch' && github.event.action == 'started'
       runs-on: ubuntu-latest
       steps:
