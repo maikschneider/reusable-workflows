@@ -3,7 +3,7 @@ on:
   push:
     branches:
       - main
-  issue:
+  issues:
     types: [opened, closed]
   issue_comment:
     types: [created]
