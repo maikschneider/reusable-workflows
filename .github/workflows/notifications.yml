@@ -21,8 +21,8 @@ jobs:
           title: '&#x1F4E6; &nbsp; New release: ${{ github.event.release.tag_name }}'
           summary: '&#x1F4E6; &nbsp; New release: ${{ github.event.release.tag_name }}'
           theme_color: "07a630"
-          sections: '[{ "activityTitle": "${{ github.event.release.author.name }}", "activitySubtitle": "${{ github.event.release.description }}", "activityImage": "https://images.t3n.de/news/wp-content/uploads/2022/05/Leonardo-DiCaprio-Meme.png?class=structuredData-small" }]'
-          actions: '[{ "@type": "OpenUri", "name": "Show release", "targets": [{ "os": "default", "uri": "${{ github.event.release.url }}" }] }]'
+          sections: '[{ "activityTitle": "${{ github.event.release.name }}", "activitySubtitle": "${{ github.event.release.body }}" }]'
+          actions: '[{ "@type": "OpenUri", "name": "Show release", "targets": [{ "os": "default", "uri": "${{ github.event.release.html_url }}" }] }, { "@type": "OpenUri", "name": "Download zip", "targets": [{ "os": "default", "uri": "${{ github.event.release.zipball_url }}" }] }]'
 
   issue_new:
     if: github.event_name == 'issues' && github.event.action == 'opened'
