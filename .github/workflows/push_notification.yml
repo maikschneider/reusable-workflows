@@ -9,20 +9,14 @@ jobs:
   release:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
       - name: Notification
-        uses: mikesprague/teams-incoming-webhook-action@v1
+        uses: aliencube/microsoft-teams-actions@v0.8.0
         with:
           github-token: ${{ github.token }}
           webhook-url: ${{ secrets.TEAMS_WEBHOOK_URL }}
-          title: "Notification Test"
-          message: "This is an example of a simple notification with a title and a body"
-      - name: Deploy Started Notification
-        uses: mikesprague/teams-incoming-webhook-action@v1
-        with:
-          github-token: ${{ github.token }}
-          webhook-url: ${{ secrets.TEAMS_WEBHOOK_URL }}
-          deploy-card: true
-          title: "Deployment Started"
-          color: "success"
+          title: "Neuer Commit"
+          summary: "<Message Summary>"
+          text: "<Message Text>"
+          theme_color: "FF0000"
+          sections: '[{ "activityTitle": "hello world", "activityImage": "https://connectorsdemo.azurewebsites.net/images/MSC12_Oscar_002.jpg", "text": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, s" }]'
+          actions: '[{ "@type": "OpenUri", "name": "lorem ipsum", "targets": [{ "os": "default", "uri": "https://localhost" }] }]'
