@@ -1,16 +1,6 @@
 name: notifications
 
 on:
-  release:
-    types: [published,released,created]
-  issues:
-    types: [opened, closed]
-  issue_comment:
-    types: [created]
-  watch:
-    types: [started]
-  pull_request:
-    types: [opened]
   workflow_call:
     secrets:
       teams-webhook-url:
