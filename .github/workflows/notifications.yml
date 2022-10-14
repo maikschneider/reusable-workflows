@@ -1,4 +1,5 @@
-name: test-build-release
+name: notifications
+
 on:
   release:
     types: [published]
@@ -8,18 +9,24 @@ on:
     types: [created]
   watch:
     types: [started]
+  pull_request:
+    types: [opened]
+  workflow_call:
+    secrets:
+      teams-webhook-url:
+        required: true
 
 jobs:
 
-  release:
-    if: github.event_name == 'release'
+  release_new:
+    if: github.event_name == 'release' && github.event.action == 'published'
     runs-on: ubuntu-latest
     steps:
       - uses: aliencube/microsoft-teams-actions@v0.8.0
         with:
-          webhook_uri: ${{ secrets.TEAMS_WEBHOOK_URL }}
-          title: '&#x1F4E6; &nbsp; New release: ${{ github.event.release.tag_name }}'
-          summary: '&#x1F4E6; &nbsp; New release: ${{ github.event.release.tag_name }}'
+          webhook_uri: ${{ secrets.teams-webhook-url }}
+          title: '&#x1F4E6;&nbsp; New release: ${{ github.event.release.tag_name }}'
+          summary: '&#x1F4E6;&nbsp; New release: ${{ github.event.release.tag_name }}'
           theme_color: "07a630"
           sections: '[{ "activityTitle": "${{ github.event.release.name }}", "activitySubtitle": "${{ github.event.release.body }}" }]'
           actions: '[{ "@type": "OpenUri", "name": "Show release", "targets": [{ "os": "default", "uri": "${{ github.event.release.html_url }}" }] }, { "@type": "OpenUri", "name": "Download zip", "targets": [{ "os": "default", "uri": "${{ github.event.release.zipball_url }}" }] }]'
@@ -30,22 +37,22 @@ jobs:
     steps:
       - uses: aliencube/microsoft-teams-actions@v0.8.0
         with:
-          webhook_uri: ${{ secrets.TEAMS_WEBHOOK_URL }}
-          title: '&#128293; &nbsp; New issue #${{ github.event.issue.number }}: "${{ github.event.issue.title }}"'
-          summary: '&#128293; &nbsp; New issue #${{ github.event.issue.number }}: "${{ github.event.issue.title }}"'
+          webhook_uri: ${{ secrets.teams-webhook-url }}
+          title: '&#128293;&nbsp; New issue #${{ github.event.issue.number }}: "${{ github.event.issue.title }}"'
+          summary: '&#128293;&nbsp; New issue #${{ github.event.issue.number }}: "${{ github.event.issue.title }}"'
           sections: '[{ "activityTitle": "[${{ github.event.issue.user.name }}](${{ github.event.issue.user.html_url }})", "activitySubtitle": "${{ github.event.issue.body }}", "activityImage": "${{ github.event.issue.user.avatar_url }}" }]'
           actions: '[{ "@type": "OpenUri", "name": "View issue", "targets": [{ "os": "default", "uri": "${{ github.event.issue.html_url }}" }] }]'
           theme_color: 'f83838'
-  
+
   issue_closed:
     if: github.event_name == 'issues' && github.event.action == 'closed'
     runs-on: ubuntu-latest
     steps:
       - uses: aliencube/microsoft-teams-actions@v0.8.0
         with:
-          webhook_uri: ${{ secrets.TEAMS_WEBHOOK_URL }}
-          title: '&#x1F3C1; &nbsp; Issue #${{ github.event.issue.number }} closed: "${{ github.event.issue.title }}"'
-          summary: '&#x1F3C1; &nbsp; Issue #${{ github.event.issue.number }} closed: "${{ github.event.issue.title }}"'
+          webhook_uri: ${{ secrets.teams-webhook-url }}
+          title: '&#x1F3C1;&nbsp; Issue #${{ github.event.issue.number }} closed: "${{ github.event.issue.title }}"'
+          summary: '&#x1F3C1;&nbsp; Issue #${{ github.event.issue.number }} closed: "${{ github.event.issue.title }}"'
           actions: '[{ "@type": "OpenUri", "name": "View issue", "targets": [{ "os": "default", "uri": "${{ github.event.issue.html_url }}" }] }]'
           theme_color: '58a6ff'
 
@@ -55,20 +62,33 @@ jobs:
     steps:
       - uses: aliencube/microsoft-teams-actions@v0.8.0
         with:
-          webhook_uri: ${{ secrets.TEAMS_WEBHOOK_URL }}
-          title: '&#x1F4AC; &nbsp; New comment on issue #${{ github.event.issue.number }}: "${{ github.event.issue.title }}"'
-          summary: '&#x1F4AC; &nbsp; New comment on issue #${{ github.event.issue.number }}: "${{ github.event.issue.title }}"'
-          sections: '[{ "activityTitle": "[${{ github.event.comment.user.name }}](${{ github.event.comment.user.html_url }})", "activitySubtitle": "${{ github.event.comment.body }}", "activityImage": "${{ github.event.comment.user.avatar_url }}" }]'
+          webhook_uri: ${{ secrets.teams-webhook-url }}
+          title: '&#x1F4AC;&nbsp; New comment on issue #${{ github.event.issue.number }}: "${{ github.event.issue.title }}"'
+          summary: '&#x1F4AC;&nbsp; New comment on issue #${{ github.event.issue.number }}: "${{ github.event.issue.title }}"'
+          sections: '[{ "activityTitle": "[${{ github.event.comment.user.login }}](${{ github.event.comment.user.html_url }})", "activitySubtitle": "${{ github.event.comment.body }}", "activityImage": "${{ github.event.comment.user.avatar_url }}" }]'
           actions: '[{ "@type": "OpenUri", "name": "View comment", "targets": [{ "os": "default", "uri": "${{ github.event.comment.html_url }}" }] }]'
           theme_color: '58a6ff'
-  
+
   watch_star_new:
     if: github.event_name == 'watch' && github.event.action == 'started'
     runs-on: ubuntu-latest
     steps:
       - uses: aliencube/microsoft-teams-actions@v0.8.0
         with:
-          webhook_uri: ${{ secrets.TEAMS_WEBHOOK_URL }}
-          title: '&#x2B50; &nbsp; New star!'
-          summary: '&#x2B50; &nbsp; New star!'
+          webhook_uri: ${{ secrets.teams-webhook-url }}
+          title: '&#x2B50;&nbsp; New star!'
+          summary: '&#x2B50;&nbsp; New star!'
           theme_color: 'e3c700'
+
+  pull_request_new:
+    if: github.event_name == 'pull_request' && github.event.action == 'opened'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: aliencube/microsoft-teams-actions@v0.8.0
+        with:
+          webhook_uri: ${{ secrets.teams-webhook-url }}
+          title: '&#x1F6E0;&nbsp; New pull request #${{ github.event.pull_request.number }}: "${{ github.event.pull_request.title }}"'
+          summary: '&#x1F4AC;&nbsp; New pull request #${{ github.event.pull_request.number }}: "${{ github.event.pull_request.title }}"'
+          sections: '[{ "activityTitle": "[${{ github.event.pull_request.user.login }}](${{ github.event.pull_request.user.html_url }})", "activitySubtitle": "${{ github.event.pull_request.body }}", "activityImage": "${{ github.event.pull_request.user.avatar_url }}", "facts": [{"name": "Commits", "value": "${{ github.event.pull_request.commits }}"},{"name": "File changes", "value": "${{ github.event.pull_request.changed_files }}"},{"name": "Additions", "value": "${{ github.event.pull_request.additions }}"},{"name": "Deletions", "value": "${{ github.event.pull_request.deletions }}"}] }]'
+          actions: '[{ "@type": "OpenUri", "name": "View pull request", "targets": [{ "os": "default", "uri": "${{ github.event.pull_request.html_url }}" }] }]'
+          theme_color: 'f83838'
