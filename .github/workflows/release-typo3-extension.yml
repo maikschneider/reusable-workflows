@@ -95,7 +95,6 @@ jobs:
           git fetch
           echo RELEASE_NOTES=$(git log --pretty=format:"- %s\r\n" v${{ needs.version-check.outputs.latest-version }}...v${{needs.version-check.outputs.typo3-ext-version}} | tail +2) >> $GITHUB_ENV
       - uses: aliencube/microsoft-teams-actions@v0.8.0
-        if: secrets.teams-webhook-url
         with:
           webhook_uri: ${{ secrets.teams-webhook-url }}
           title: '&#x1F4E6;&nbsp; New release published: Version ${{needs.version-check.outputs.typo3-ext-version}}'
