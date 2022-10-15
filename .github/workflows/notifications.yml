@@ -41,8 +41,8 @@ jobs:
       - uses: aliencube/microsoft-teams-actions@v0.8.0
         with:
           webhook_uri: ${{ secrets.teams-webhook-url }}
-          title: '&#x1F3C1;&nbsp; Issue #${{ github.event.issue.number }} closed: "${{ toJSON(github.event.issue.title) }}"'
-          summary: '&#x1F3C1;&nbsp; Issue #${{ github.event.issue.number }} closed: "${{ toJSON(github.event.issue.title) }}"'
+          title: '&#x1F3C1;&nbsp; Issue #${{ github.event.issue.number }} closed: "${{ github.event.issue.title }}"'
+          summary: '&#x1F3C1;&nbsp; Issue #${{ github.event.issue.number }} closed: "${{ github.event.issue.title }}"'
           actions: '[{ "@type": "OpenUri", "name": "View issue", "targets": [{ "os": "default", "uri": "${{ github.event.issue.html_url }}" }] }]'
           theme_color: '58a6ff'
 
@@ -54,7 +54,7 @@ jobs:
         with:
           webhook_uri: ${{ secrets.teams-webhook-url }}
           title: '&#x1F4AC;&nbsp; New comment on issue #${{ github.event.issue.number }}: "${{ github.event.issue.title }}"'
-          summary: '&#x1F4AC;&nbsp; New comment on issue #${{ github.event.issue.number }}: ${{ toJSON(github.event.issue.title) }}'
+          summary: '&#x1F4AC;&nbsp; New comment on issue #${{ github.event.issue.number }}: "${{ github.event.issue.title }}"'
           sections: '[{ "activityTitle": "[${{ github.event.comment.user.login }}](${{ github.event.comment.user.html_url }})", "activitySubtitle": ${{ toJSON(github.event.comment.body) }}, "activityImage": "${{ github.event.comment.user.avatar_url }}" }]'
           actions: '[{ "@type": "OpenUri", "name": "View comment", "targets": [{ "os": "default", "uri": "${{ github.event.comment.html_url }}" }] }]'
           theme_color: '58a6ff'
@@ -77,8 +77,8 @@ jobs:
       - uses: aliencube/microsoft-teams-actions@v0.8.0
         with:
           webhook_uri: ${{ secrets.teams-webhook-url }}
-          title: '&#x1F6E0;&nbsp; New pull request #${{ github.event.pull_request.number }}: "${{ toJSON(github.event.pull_request.title) }}"'
-          summary: '&#x1F4AC;&nbsp; New pull request #${{ github.event.pull_request.number }}: "${{ toJSON(github.event.pull_request.title) }}"'
+          title: '&#x1F6E0;&nbsp; New pull request #${{ github.event.pull_request.number }}: "${{ github.event.pull_request.title }}"'
+          summary: '&#x1F4AC;&nbsp; New pull request #${{ github.event.pull_request.number }}: "${{ github.event.pull_request.title }}"'
           sections: '[{ "activityTitle": "[${{ github.event.pull_request.user.login }}](${{ github.event.pull_request.user.html_url }})", "activitySubtitle": ${{ toJSON(github.event.pull_request.body) }}, "activityImage": "${{ github.event.pull_request.user.avatar_url }}", "facts": [{"name": "Commits", "value": "${{ github.event.pull_request.commits }}"},{"name": "File changes", "value": "${{ github.event.pull_request.changed_files }}"},{"name": "Additions", "value": "${{ github.event.pull_request.additions }}"},{"name": "Deletions", "value": "${{ github.event.pull_request.deletions }}"}] }]'
           actions: '[{ "@type": "OpenUri", "name": "View pull request", "targets": [{ "os": "default", "uri": "${{ github.event.pull_request.html_url }}" }] }]'
           theme_color: 'f83838'
