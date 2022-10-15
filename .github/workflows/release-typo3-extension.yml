@@ -1,0 +1,91 @@
+name: Release TYPO3 Extension
+
+on:
+  workflow_call:
+    inputs:
+      base-branch:
+        required: true
+        type: string
+    secrets:
+      teams-webhook-url:
+        required: false
+
+jobs:
+
+  version-check:
+    runs-on: ubuntu-latest
+    outputs:
+      latest-version: ${{ steps.main.outputs.latest-version }}
+      typo3-ext-version: ${{ steps.dev.outputs.typo3-ext-version }}
+    steps:
+      - uses: actions/checkout@v3
+      - id: dev
+        run: |
+          TYPO3_EXT_VERSION=$(cat ext_emconf.php | grep "version*" | grep -Po "(\d+\.)+\d+")
+          echo "::set-output name=typo3-ext-version::$(echo ${TYPO3_EXT_VERSION})"
+      - uses: actions/checkout@v3
+        with:
+          ref: ${{ inputs.base-branch }}
+      - run: git fetch --prune --unshallow --tags
+      - id: main
+        run: |
+          LATEST_TAG=$(git describe --abbrev=0 --tags | grep -Po "(\d+\.)+\d+")
+          echo "::set-output name=latest-version::$(echo ${LATEST_TAG})"
+
+  release:
+    runs-on: ubuntu-latest
+    needs:
+      - version-check
+    if: ${{ needs.version-check.outputs.latest-version != needs.version-check.outputs.typo3-ext-version }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+      - name: Create release branch
+        run: git checkout -b release-${{needs.version-check.outputs.typo3-ext-version}} ${{ github.ref }}
+      - name: Clean up
+        run: rm -rf .ddev .github config Configuration/php-cs-fixer.php node_modules public var vendor typo3_src .editorconfig .gitignore .phpstorm.meta.php package.json composer.lock package-lock.json phpstan.neon phpstan-baseline.neon tsconfig.json webpack.js
+      - name: Commit changes
+        uses: EndBug/add-and-commit@v9
+        id: commit
+        with:
+          add: '.'
+          committer_name: GitHub Actions
+          committer_email: actions@github.com
+          message: 'build: version ${{needs.version-check.outputs.typo3-ext-version}}'
+          new_branch: release-${{needs.version-check.outputs.typo3-ext-version}}
+      - name: Create PR
+        id: pr
+        run: |
+          echo "PR_URL=$(gh pr create --fill --base ${{ inputs.base-branch }} --head release-${{needs.version-check.outputs.typo3-ext-version}})" >> $GITHUB_ENV
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Merge PR
+        run: gh pr merge ${{ env.PR_URL }} -d --merge
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Create and tag release
+        uses: ncipollo/release-action@v1
+        with:
+          token: ${{ secrets.PAT }}
+          tag: "v${{needs.version-check.outputs.typo3-ext-version}}"
+          commit: ${{ inputs.base-branch }}
+
+  notify:
+    if: ${{ secrets.teams-webhook-url }}
+    needs:
+      - version-check
+      - release
+    steps:
+      - name: Get release notes
+        run: |
+          git fetch
+          echo RELEASE_NOTES=$(git log --pretty=format:"- %s\r\n" v${{ needs.version-check.outputs.latest-version }}...v${{needs.version-check.outputs.typo3-ext-version}} | tail +2) >> $GITHUB_ENV
+      - uses: aliencube/microsoft-teams-actions@v0.8.0
+        with:
+          webhook_uri: ${{ secrets.TEAMS_WEBHOOK_URL }}
+          title: '&#x1F4E6;&nbsp; New release: Version ${{needs.version-check.outputs.typo3-ext-version}}'
+          summary: '&#x1F4E6;&nbsp; New release: Version ${{needs.version-check.outputs.typo3-ext-version}}'
+          theme_color: "07a630"
+          sections: '[{ "activityText": "${{ env.RELEASE_NOTES }}" }]'
+          actions: '[{ "@type": "OpenUri", "name": "Show release", "targets": [{ "os": "default", "uri": "https://github.com/${{ github.repository }}/releases/tag/v${{needs.version-check.outputs.typo3-ext-version}}" }] }, { "@type": "OpenUri", "name": "Download zip", "targets": [{ "os": "default", "uri": "https://github.com/${{ github.repository }}/archive/refs/tags/v${{needs.version-check.outputs.typo3-ext-version}}.zip" }] }]'
+     

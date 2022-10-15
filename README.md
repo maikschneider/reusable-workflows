@@ -13,12 +13,16 @@ Available events:
 * New pull request
 * New release
 
+Input|Type|Required|Description
+-|-|-|-
+`teams-webhook-url`|secret|true|Microsoft Teams webhook URL
+
 To trigger all notifications from your repository, simply add the following `.github/workflow/notifications.yml` to your project and add configure the `TEAMS_WEBHOOK_URL` secret in your project settings:
 
 ```
 name: Send notifications
 
-on: [release, issues, issue_comment, watch, pull_request, workflow_call]
+on: [release, issues, issue_comment, watch, pull_request]
 
 jobs:
   notification:
@@ -27,6 +31,15 @@ jobs:
       teams-webhook-url: ${{ secrets.TEAMS_WEBHOOK_URL }}
 ```
 
-## TYPO3 Extension build & test
+## TYPO3 Extension release
 
-@TODO
+The release action compoares the extension version in the `ext_emconf.php` with the latest release tag. 
+
+Input|Type|Required|Description
+-|-|-|-
+`base-branch`|input|yes|Name of the branch the action will create and merge a pull request
+`teams-webhook-url`|secret|false|Microsoft Teams webhook for notification after successful release
+
+```
+
+```
