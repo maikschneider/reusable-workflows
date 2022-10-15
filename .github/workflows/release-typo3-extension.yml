@@ -66,12 +66,11 @@ jobs:
       - name: Create and tag release
         uses: ncipollo/release-action@v1
         with:
-          token: ${{ secrets.PAT }}
+          token: ${{ secrets.GITHUB_TOKEN }}
           tag: "v${{needs.version-check.outputs.typo3-ext-version}}"
           commit: ${{ inputs.base-branch }}
 
   notify:
-    if: ${{ secrets.teams-webhook-url }}
     needs:
       - version-check
       - release
@@ -82,7 +81,7 @@ jobs:
           echo RELEASE_NOTES=$(git log --pretty=format:"- %s\r\n" v${{ needs.version-check.outputs.latest-version }}...v${{needs.version-check.outputs.typo3-ext-version}} | tail +2) >> $GITHUB_ENV
       - uses: aliencube/microsoft-teams-actions@v0.8.0
         with:
-          webhook_uri: ${{ secrets.TEAMS_WEBHOOK_URL }}
+          webhook_uri: ${{ secrets.teams-webhook-url }}
           title: '&#x1F4E6;&nbsp; New release: Version ${{needs.version-check.outputs.typo3-ext-version}}'
           summary: '&#x1F4E6;&nbsp; New release: Version ${{needs.version-check.outputs.typo3-ext-version}}'
           theme_color: "07a630"
