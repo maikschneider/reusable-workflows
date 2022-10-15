@@ -31,15 +31,34 @@ jobs:
       teams-webhook-url: ${{ secrets.TEAMS_WEBHOOK_URL }}
 ```
 
-## TYPO3 Extension release
+## TYPO3 extension release
 
-The release action compoares the extension version in the `ext_emconf.php` with the latest release tag. 
+The release action compares the extension version in the `ext_emconf.php` with the latest release tag and possibly triggers a release.
+
+Release steps:
+
+    1. Install and build node (optional)
+    2. Clean up
+    3. Create & merge pull request
+    4. Tag and publish release
+    5. Notification via Teams (optional)
 
 Input|Type|Required|Description
 -|-|-|-
 `base-branch`|input|yes|Name of the branch the action will create and merge a pull request
 `teams-webhook-url`|secret|false|Microsoft Teams webhook for notification after successful release
+`build-assets`|input|false|Whether to install and build node assets
+
+Example usage with all inputs:
 
 ```
+jobs:
+  release:
+    uses: maikschneider/reusable-workflows/.github/workflows/release-typo3-extension.yml@main
+    secrets:
+      teams-webhook-url: ${{ secrets.TEAMS_WEBHOOK_URL }}
+    with:
+      base-branch: master
+      build-assets: true
 
 ```
