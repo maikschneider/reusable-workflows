@@ -54,8 +54,8 @@ jobs:
         with:
           webhook_uri: ${{ secrets.teams-webhook-url }}
           title: '&#x1F4AC;&nbsp; New comment on issue #${{ github.event.issue.number }}: "${{ github.event.issue.title }}"'
-          summary: '&#x1F4AC;&nbsp; New comment on issue #${{ github.event.issue.number }}: "${{ github.event.issue.title }}"'
-          sections: '[{ "activityTitle": "[${{ github.event.comment.user.login }}](${{ github.event.comment.user.html_url }})", "activitySubtitle": "${{ github.event.comment.body }}", "activityImage": "${{ github.event.comment.user.avatar_url }}" }]'
+          summary: '&#x1F4AC;&nbsp; New comment on issue #${{ github.event.issue.number }}: ${{ toJSON(github.event.issue.title) }}'
+          sections: '[{ "activityTitle": "[${{ github.event.comment.user.login }}](${{ github.event.comment.user.html_url }})", "activitySubtitle": ${{ toJSON(github.event.comment.body) }}, "activityImage": "${{ github.event.comment.user.avatar_url }}" }]'
           actions: '[{ "@type": "OpenUri", "name": "View comment", "targets": [{ "os": "default", "uri": "${{ github.event.comment.html_url }}" }] }]'
           theme_color: '58a6ff'
 
