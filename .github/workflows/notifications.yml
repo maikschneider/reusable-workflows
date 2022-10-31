@@ -30,7 +30,7 @@ jobs:
           webhook_uri: ${{ secrets.teams-webhook-url }}
           title: '&#128293;&nbsp; New issue #${{ github.event.issue.number }}: "${{ github.event.issue.title }}"'
           summary: '&#128293;&nbsp; New issue #${{ github.event.issue.number }}: "${{ github.event.issue.title }}"'
-          sections: '[{ "activityTitle": "[${{ github.event.issue.user.name }}](${{ github.event.issue.user.html_url }})", "activitySubtitle": ${{ toJSON(github.event.issue.body) }}, "activityImage": "${{ github.event.issue.user.avatar_url }}" }]'
+          sections: '[{ "activityTitle": "[${{ github.event.issue.user.login }}](${{ github.event.issue.user.html_url }})", "activitySubtitle": ${{ toJSON(github.event.issue.body) }}, "activityImage": "${{ github.event.issue.user.avatar_url }}" }]'
           actions: '[{ "@type": "OpenUri", "name": "View issue", "targets": [{ "os": "default", "uri": "${{ github.event.issue.html_url }}" }] }]'
           theme_color: 'f83838'
 
