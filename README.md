@@ -22,7 +22,7 @@ To trigger all notifications from your repository, simply add the following `.gi
 ```
 name: Send notifications
 
-on: [release, issues, issue_comment, watch, pull_request]
+on: [release, issues, issue_comment, watch, pull_request_target]
 
 jobs:
   notification:
