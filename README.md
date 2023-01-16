@@ -19,7 +19,7 @@ Input|Type|Required|Description
 
 To trigger all notifications from your repository, simply add the following `.github/workflows/notifications.yml` to your project and add configure the `TEAMS_WEBHOOK_URL` secret in your project settings:
 
-```
+```yaml
 name: Send notifications
 
 on: [release, issues, issue_comment, watch, pull_request_target]
@@ -51,7 +51,7 @@ Input|Type|Required|Description
 
 Example usage with all inputs:
 
-```
+```yaml
 jobs:
   release:
     uses: maikschneider/reusable-workflows/.github/workflows/release-typo3-extension.yml@main
