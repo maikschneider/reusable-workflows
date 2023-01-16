@@ -17,7 +17,7 @@ Input|Type|Required|Description
 -|-|-|-
 `teams-webhook-url`|secret|true|Microsoft Teams webhook URL
 
-To trigger all notifications from your repository, simply add the following `.github/workflow/notifications.yml` to your project and add configure the `TEAMS_WEBHOOK_URL` secret in your project settings:
+To trigger all notifications from your repository, simply add the following `.github/workflows/notifications.yml` to your project and add configure the `TEAMS_WEBHOOK_URL` secret in your project settings:
 
 ```
 name: Send notifications
