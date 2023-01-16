@@ -58,6 +58,7 @@ on: [ push ]
 
 jobs:
   release:
+    if: github.ref == 'refs/heads/development'
     uses: maikschneider/reusable-workflows/.github/workflows/release-typo3-extension.yml@main
     secrets:
       teams-webhook-url: ${{ secrets.TEAMS_WEBHOOK_URL }}
