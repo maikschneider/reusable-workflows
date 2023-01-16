@@ -52,6 +52,10 @@ Input|Type|Required|Description
 Example usage with all inputs:
 
 ```yaml
+name: Build and release TYPO3 extension
+
+on: [ push ]
+
 jobs:
   release:
     uses: maikschneider/reusable-workflows/.github/workflows/release-typo3-extension.yml@main
