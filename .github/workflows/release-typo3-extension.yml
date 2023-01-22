@@ -9,8 +9,13 @@ on:
       build-assets:
         required: false
         type: boolean
+      publish-ter:
+        required: false
+        type: boolean
     secrets:
       teams-webhook-url:
+        required: false
+      typo3-api-token:
         required: false
 
 jobs:
