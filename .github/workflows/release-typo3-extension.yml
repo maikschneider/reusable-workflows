@@ -81,6 +81,20 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           tag: "v${{needs.version-check.outputs.typo3-ext-version}}"
           commit: ${{ inputs.base-branch }}
+          
+  TERUpload:
+    runs-on: ubuntu-latest
+    needs:
+      - version-check
+      - publish
+    if: ${{ secrets.TYPO3_API_TOKEN }}
+    strategy:
+      fail-fast: false
+    steps:
+      - uses: actions/checkout@v3
+      - uses: tomasnorre/typo3-upload-ter@v2
+        with:
+          api-token: ${{ secrets.TYPO3_API_TOKEN }}
 
   notify:
     runs-on: ubuntu-latest
