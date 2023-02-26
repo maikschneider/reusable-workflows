@@ -39,6 +39,10 @@ jobs:
         run: |
           LATEST_TAG=$(git describe --abbrev=0 --tags | grep -Po "(\d+\.)+\d+")
           echo "::set-output name=latest-version::$(echo ${LATEST_TAG})"
+      - id: name
+        run: |
+          TYPO3_EXT_KEY=$(cat composer.json | jq -r '.extra."typo3/cms"."extension-key" // empty')
+          echo "::set-output name=typo3-ext-key::$(echo ${TYPO3_EXT_KEY})"
 
   publish:
     runs-on: ubuntu-latest
@@ -92,15 +96,20 @@ jobs:
     needs:
       - publish
     if: inputs.publish-ter
+    env:
+      TYPO3_EXTENSION_KEY: ${{ needs.version-check.outputs.typo3-ext-key }}
+      TYPO3_API_TOKEN: ${{ secrets.TYPO3_API_TOKEN }}
     strategy:
       fail-fast: false
     steps:
-      - uses: actions/checkout@v3
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
         with:
-          ref: ${{ inputs.base-branch }}
-      - uses: tomasnorre/typo3-upload-ter@v2
-        with:
-          api-token: ${{ secrets.TYPO3_API_TOKEN }}
+          php-version: 7.4
+      - name: Install typo3/tailor
+        run: composer require typo3/tailor --prefer-dist --no-progress --no-suggest
+      - name: Publish
+        run: .vendor/bin/tailor ter:publish ${{needs.version-check.outputs.typo3-ext-version}} --artefact=https://github.com/${{ github.repository }}/archive/refs/tags/v${{needs.version-check.outputs.typo3-ext-version}}.zip
 
   notify:
     runs-on: ubuntu-latest
