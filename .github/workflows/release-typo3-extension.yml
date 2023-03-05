@@ -94,6 +94,7 @@ jobs:
   publish-ter:
     runs-on: ubuntu-latest
     needs:
+      - version-check
       - publish
     if: inputs.publish-ter
     env:
@@ -114,6 +115,7 @@ jobs:
   notify:
     runs-on: ubuntu-latest
     needs:
+      - version-check
       - publish
     steps:
       - name: Checkout repository
