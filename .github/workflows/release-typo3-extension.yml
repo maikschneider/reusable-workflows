@@ -110,7 +110,7 @@ jobs:
       - name: Install typo3/tailor
         run: composer require typo3/tailor --prefer-dist --no-progress --no-suggest
       - name: Publish
-        run: .vendor/bin/tailor ter:publish ${{needs.version-check.outputs.typo3-ext-version}} --artefact=https://github.com/${{ github.repository }}/archive/refs/tags/v${{needs.version-check.outputs.typo3-ext-version}}.zip
+        run: ./vendor/bin/tailor ter:publish ${{needs.version-check.outputs.typo3-ext-version}} --artefact=https://github.com/${{ github.repository }}/archive/refs/tags/v${{needs.version-check.outputs.typo3-ext-version}}.zip
 
   notify:
     runs-on: ubuntu-latest
