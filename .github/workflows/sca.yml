@@ -62,7 +62,6 @@ jobs:
       - name: Report versions
         run: composer info -D
 
-
       - name: Download dev-tools
         run: |
           mkdir -p .dev-tools && cd .dev-tools
@@ -89,6 +88,9 @@ jobs:
 
       - name: Check - phpstan
         run: .dev-tools/vendor/bin/phpstan analyse --error-format=checkstyle | cs2pr
+
+      - name: Check - php-cs-fixer
+        run: .dev-tools/vendor/bin/php-cs-fixer fix --dry-run --format=checkstyle | cs2pr
 
       - name: Check - shell scripts
         run: .dev-tools/check_shell_scripts.sh

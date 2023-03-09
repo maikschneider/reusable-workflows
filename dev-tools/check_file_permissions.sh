@@ -17,12 +17,4 @@ then
     exit 3
 fi
 
-if [ -x "php-cs-fixer" ]
-then
-    echo '"php-cs-fixer" is executable'
-else
-    echo '"php-cs-fixer" not is executable'
-    exit 4
-fi
-
 printf '\033[0;32mNo wrong permissions detected.\033[0m\n'
