@@ -71,8 +71,9 @@ jobs:
           wget "https://raw.githubusercontent.com/maikschneider/reusable-workflows/main/dev-tools/check_file_permissions.sh"
           wget "https://raw.githubusercontent.com/maikschneider/reusable-workflows/main/dev-tools/check_trailing_spaces.sh"
           wget "https://raw.githubusercontent.com/maikschneider/reusable-workflows/main/dev-tools/check_shell_scripts.sh"
+          wget "https://raw.githubusercontent.com/maikschneider/reusable-workflows/main/dev-tools/check_linter_php.sh"
           wget "https://raw.githubusercontent.com/maikschneider/reusable-workflows/main/dev-tools/php-cs-fixer.php"
-          chmod u+x install.sh check_file_permissions.sh check_trailing_spaces.sh check_shell_scripts.sh
+          chmod u+x install.sh check_file_permissions.sh check_trailing_spaces.sh check_shell_scripts.sh check_linter_php.sh
 
       - name: Install dev-tools
         uses: nick-invision/retry@v2
@@ -87,6 +88,9 @@ jobs:
 
       - name: Check - trailing spaces
         run: .dev-tools/check_trailing_spaces.sh
+
+      - name: Check - php-linter
+        run: .dev-tools/check_linter_php.sh
 
 #      - name: Check - phpstan
 #        run: .dev-tools/vendor/bin/phpstan analyse --error-format=checkstyle | cs2pr
