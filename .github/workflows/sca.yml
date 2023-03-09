@@ -1,0 +1,121 @@
+name: Static Code Analysis
+
+on:
+  workflow_call:
+    inputs:
+      php-version:
+        required: false
+        type: string
+        default: '8.1'
+      operating-system:
+        required: false
+        type: string
+        default: 'ubuntu-20.04'
+
+permissions:
+  contents: read # to fetch code (actions/checkout)
+
+jobs:
+  tests:
+    strategy:
+      fail-fast: false
+
+    name: Static Code Analysis
+
+    runs-on: ${{ inputs.operating-system }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ inputs.php-version }}
+          coverage: none # without this Xdebug will be enabled
+          tools: cs2pr
+
+      - name: Get Composer cache directory
+        id: composer-cache
+        run: echo "::set-output name=dir::$(composer config cache-dir)"
+
+      - name: Cache dependencies
+        uses: actions/cache@v2
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: composer-${{ runner.os }}-${{ inputs.php-version }}-${{ hashFiles('**/composer.*') }}
+          restore-keys: |
+            composer-${{ runner.os }}-${{ inputs.php-version }}-${{ hashFiles('**/composer.*') }}-
+            composer-${{ runner.os }}-${{ inputs.php-version }}-
+            composer-${{ runner.os }}-
+            composer-
+      - name: Install dependencies
+        uses: nick-invision/retry@v2
+        with:
+          timeout_minutes: 5
+          max_attempts: 5
+          retry_wait_seconds: 30
+          command: composer update --optimize-autoloader --no-interaction --no-progress
+
+      - name: Report versions
+        run: composer info -D
+
+
+      - name: Download dev-tools
+        run: |
+          mkdir -p .dev-tools && cd .dev-tools
+          wget -qO- "https://raw.githubusercontent.com/maikschneider/reusable-workflows/main/dev-tools/install.sh"
+          wget -qO- "https://raw.githubusercontent.com/maikschneider/reusable-workflows/main/dev-tools/composer.json"
+          wget -qO- "https://raw.githubusercontent.com/maikschneider/reusable-workflows/main/dev-tools/check_file_permissions.sh"
+          wget -qO- "https://raw.githubusercontent.com/maikschneider/reusable-workflows/main/dev-tools/check_trailing_spaces.sh"
+          wget -qO- "https://raw.githubusercontent.com/maikschneider/reusable-workflows/main/dev-tools/check_shell_scripts.sh"
+          chmod u+x install.sh check_file_permissions.sh check_trailing_spaces.sh check_shell_scripts.sh
+
+      - name: Install dev-tools
+        uses: nick-invision/retry@v2
+        with:
+          timeout_minutes: 5
+          max_attempts: 5
+          retry_wait_seconds: 30
+          command: .dev-tools/install.sh
+
+      - name: Check - file permissions
+        run: .dev-tools/check_file_permissions.sh
+
+      - name: Check - trailing spaces
+        run: .dev-tools/check_trailing_spaces.sh
+
+      - name: Check - phpstan
+        run: .dev-tools/vendor/bin/phpstan analyse --error-format=checkstyle | cs2pr
+
+      - name: Check - shell scripts
+        run: .dev-tools/check_shell_scripts.sh
+
+      - name: Find changed files (for pull request)
+        if: ${{ github.event_name == 'pull_request' }}
+        run: |
+          if git diff origin/$GITHUB_BASE_REF --name-only --diff-filter=ACMRTUXB | grep -E "\.php$"; then
+            echo 'CHANGED_PHP_FILES<<EOF' >> $GITHUB_ENV
+            git diff origin/$GITHUB_BASE_REF --name-only --diff-filter=ACMRTUXB | grep -E "\.php$" >> $GITHUB_ENV
+            echo 'EOF' >> $GITHUB_ENV
+          fi
+
+      - name: Find changed files (for push)
+        if: ${{ github.event_name != 'pull_request' }}
+        run: |
+          if git diff --name-only --diff-filter=ACMRTUXB HEAD~..HEAD | grep -E "\.php$"; then
+            echo 'CHANGED_PHP_FILES<<EOF' >> $GITHUB_ENV
+            git diff --name-only --diff-filter=ACMRTUXB HEAD~..HEAD | grep -E "\.php$" >> $GITHUB_ENV
+            echo 'EOF' >> $GITHUB_ENV
+          fi
+
+      - name: Check - phpmd
+        if: ${{ env.CHANGED_PHP_FILES }}
+        run: |
+          if [ '${{ github.event_name }}' == 'pull_request' ]; then
+            .dev-tools/vendor/bin/phpmd `echo "$CHANGED_PHP_FILES" | grep -v /Fixtures/ | xargs | sed 's/ /,/g'` github phpmd.xml
+          else
+            .dev-tools/vendor/bin/phpmd `echo "$CHANGED_PHP_FILES" | grep -v /Fixtures/ | xargs | sed 's/ /,/g'` ansi phpmd.xml
+          fi
