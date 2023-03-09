@@ -66,11 +66,11 @@ jobs:
       - name: Download dev-tools
         run: |
           mkdir -p .dev-tools && cd .dev-tools
-          wget -qO- "https://raw.githubusercontent.com/maikschneider/reusable-workflows/main/dev-tools/install.sh"
-          wget -qO- "https://raw.githubusercontent.com/maikschneider/reusable-workflows/main/dev-tools/composer.json"
-          wget -qO- "https://raw.githubusercontent.com/maikschneider/reusable-workflows/main/dev-tools/check_file_permissions.sh"
-          wget -qO- "https://raw.githubusercontent.com/maikschneider/reusable-workflows/main/dev-tools/check_trailing_spaces.sh"
-          wget -qO- "https://raw.githubusercontent.com/maikschneider/reusable-workflows/main/dev-tools/check_shell_scripts.sh"
+          wget "https://raw.githubusercontent.com/maikschneider/reusable-workflows/main/dev-tools/install.sh"
+          wget "https://raw.githubusercontent.com/maikschneider/reusable-workflows/main/dev-tools/composer.json"
+          wget "https://raw.githubusercontent.com/maikschneider/reusable-workflows/main/dev-tools/check_file_permissions.sh"
+          wget "https://raw.githubusercontent.com/maikschneider/reusable-workflows/main/dev-tools/check_trailing_spaces.sh"
+          wget "https://raw.githubusercontent.com/maikschneider/reusable-workflows/main/dev-tools/check_shell_scripts.sh"
           chmod u+x install.sh check_file_permissions.sh check_trailing_spaces.sh check_shell_scripts.sh
 
       - name: Install dev-tools
