@@ -3,12 +3,7 @@
     "jangregor/phpstan-prophecy": "^1.0.0",
     "mi-schi/phpmd-extension": "^4.3.0",
     "phpmd/phpmd": "^2.13.0",
-    "saschaegerer/phpstan-typo3": "^1.8",
+    "phpstan/phpstan": "^1.8.9",
     "friendsofphp/php-cs-fixer": "^3.14.4"
-  },
-  "config": {
-    "allow-plugins": {
-      "typo3/cms-composer-installers": true
-    }
   }
 }
