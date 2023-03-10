@@ -67,7 +67,6 @@ jobs:
         run: |
           mkdir -p .dev-tools && cd .dev-tools
           wget "https://raw.githubusercontent.com/maikschneider/reusable-workflows/main/dev-tools/install.sh"
-          wget "https://raw.githubusercontent.com/maikschneider/reusable-workflows/main/dev-tools/composer.json"
           wget "https://raw.githubusercontent.com/maikschneider/reusable-workflows/main/dev-tools/check_file_permissions.sh"
           wget "https://raw.githubusercontent.com/maikschneider/reusable-workflows/main/dev-tools/check_trailing_spaces.sh"
           wget "https://raw.githubusercontent.com/maikschneider/reusable-workflows/main/dev-tools/check_shell_scripts.sh"
@@ -124,8 +123,14 @@ jobs:
             echo 'EOF' >> $GITHUB_ENV
           fi
 
+      - name: Check for phpmd.xml
+        id: check_files
+        uses: andstor/file-existence-action@v2
+        with:
+          files: "phpmd.xml"
+
       - name: Check - phpmd
-        if: ${{ env.CHANGED_PHP_FILES }}
+        if: ${{ env.CHANGED_PHP_FILES }} && steps.check_files.outputs.files_exists == 'true'
         run: |
           if [ '${{ github.event_name }}' == 'pull_request' ]; then
             .dev-tools/vendor/bin/phpmd `echo "$CHANGED_PHP_FILES" | grep -v /Fixtures/ | xargs | sed 's/ /,/g'` github phpmd.xml

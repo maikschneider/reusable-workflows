@@ -41,6 +41,6 @@ if [ ! -x bin/shellcheck ]; then
 fi
 bin/shellcheck --version
 
-echo λλλ composer packages
-composer install -v
-composer info -D | sort
+#echo λλλ composer packages
+#composer install -v
+#composer info -D | sort
