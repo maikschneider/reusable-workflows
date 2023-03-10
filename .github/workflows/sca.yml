@@ -72,7 +72,6 @@ jobs:
           wget "https://raw.githubusercontent.com/maikschneider/reusable-workflows/main/dev-tools/check_trailing_spaces.sh"
           wget "https://raw.githubusercontent.com/maikschneider/reusable-workflows/main/dev-tools/check_shell_scripts.sh"
           wget "https://raw.githubusercontent.com/maikschneider/reusable-workflows/main/dev-tools/check_linter_php.sh"
-          wget "https://raw.githubusercontent.com/maikschneider/reusable-workflows/main/dev-tools/php-cs-fixer.php"
           chmod u+x install.sh check_file_permissions.sh check_trailing_spaces.sh check_shell_scripts.sh check_linter_php.sh
 
       - name: Install dev-tools
@@ -96,7 +95,10 @@ jobs:
 #        run: .dev-tools/vendor/bin/phpstan analyse --error-format=checkstyle | cs2pr
 
       - name: Check - php-cs-fixer
-        run: .dev-tools/vendor/bin/php-cs-fixer fix --config .dev-tools/php-cs-fixer.php --dry-run --format=checkstyle | cs2pr
+        run: |
+          if [[ -f "php-cs-fixer.php" ]]; then
+            vendor/bin/php-cs-fixer fix --config php-cs-fixer.php --dry-run --format=checkstyle | cs2pr
+          fi
 
       - name: Check - shell scripts
         run: .dev-tools/check_shell_scripts.sh
