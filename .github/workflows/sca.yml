@@ -133,7 +133,7 @@ jobs:
         if: ${{ env.CHANGED_PHP_FILES }} && steps.check_files.outputs.files_exists == 'true'
         run: |
           if [ '${{ github.event_name }}' == 'pull_request' ]; then
-            .dev-tools/vendor/bin/phpmd `echo "$CHANGED_PHP_FILES" | grep -v /Fixtures/ | xargs | sed 's/ /,/g'` github phpmd.xml
+            vendor/bin/phpmd `echo "$CHANGED_PHP_FILES" | grep -v /Fixtures/ | xargs | sed 's/ /,/g'` github phpmd.xml
           else
-            .dev-tools/vendor/bin/phpmd `echo "$CHANGED_PHP_FILES" | grep -v /Fixtures/ | xargs | sed 's/ /,/g'` ansi phpmd.xml
+            vendor/bin/phpmd `echo "$CHANGED_PHP_FILES" | grep -v /Fixtures/ | xargs | sed 's/ /,/g'` ansi phpmd.xml
           fi
