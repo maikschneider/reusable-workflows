@@ -91,8 +91,11 @@ jobs:
       - name: Check - php-linter
         run: .dev-tools/check_linter_php.sh
 
-#      - name: Check - phpstan
-#        run: .dev-tools/vendor/bin/phpstan analyse --error-format=checkstyle | cs2pr
+      - name: Check - phpstan
+        run: |
+          if [[ -f "phpstan.neon" ]]; then
+            vendor/bin/phpstan analyse --error-format=checkstyle | cs2pr
+          fi
 
       - name: Check - php-cs-fixer
         run: |
