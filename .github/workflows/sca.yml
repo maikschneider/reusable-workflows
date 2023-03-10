@@ -130,7 +130,7 @@ jobs:
           files: "phpmd.xml"
 
       - name: Check - phpmd
-        if: ${{ env.CHANGED_PHP_FILES }} && steps.check_files.outputs.files_exists == 'true'
+        if: ${{ env.CHANGED_PHP_FILES && (steps.check_files.outputs.files_exists == 'true') }}
         run: |
           if [ '${{ github.event_name }}' == 'pull_request' ]; then
             vendor/bin/phpmd `echo "$CHANGED_PHP_FILES" | grep -v /Fixtures/ | xargs | sed 's/ /,/g'` github phpmd.xml
