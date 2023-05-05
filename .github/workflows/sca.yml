@@ -14,7 +14,7 @@ on:
       php-extensions:
         required: false
         type: string
-        default: '
+        default: ''
 
 permissions:
   contents: read # to fetch code (actions/checkout)
