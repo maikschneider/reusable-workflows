@@ -8,24 +8,25 @@ on:
 
 jobs:
 
-  release_new:
-    if: github.event_name == 'release' && github.event.action == 'published'
-    runs-on: ubuntu-latest
+  microsoft_teams:
+    name: Microsoft Teams Notifications
+    runs-on: ubuntu-latest  
     steps:
-      - uses: aliencube/microsoft-teams-actions@v0.8.0
+
+      - name: New release
+        if: github.event_name == 'release' && github.event.action == 'published'
+        uses: aliencube/microsoft-teams-actions@v0.8.0
         with:
           webhook_uri: ${{ secrets.teams-webhook-url }}
           title: '&#x1F4E6;&nbsp; New release: ${{ github.event.release.tag_name }}'
           summary: '&#x1F4E6;&nbsp; New release: ${{ github.event.release.tag_name }}'
           theme_color: "07a630"
-          sections: '[{ "activityTitle": "${{ toJSON(github.event.release.name) }}", "activitySubtitle": ${{ toJSON(github.event.release.body) }} }]'
+          sections: '[{ "activityTitle": "${{ github.event.release.name }}", "activitySubtitle": ${{ toJSON(github.event.release.body) }} }]'
           actions: '[{ "@type": "OpenUri", "name": "Show release", "targets": [{ "os": "default", "uri": "${{ github.event.release.html_url }}" }] }, { "@type": "OpenUri", "name": "Download zip", "targets": [{ "os": "default", "uri": "${{ github.event.release.zipball_url }}" }] }]'
 
-  issue_new:
-    if: github.event_name == 'issues' && github.event.action == 'opened'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: aliencube/microsoft-teams-actions@v0.8.0
+      - name: New issue
+        if: github.event_name == 'issues' && github.event.action == 'opened'
+        uses: aliencube/microsoft-teams-actions@v0.8.0
         with:
           webhook_uri: ${{ secrets.teams-webhook-url }}
           title: '&#128293;&nbsp; New issue #${{ github.event.issue.number }}: "${{ github.event.issue.title }}"'
@@ -34,11 +35,9 @@ jobs:
           actions: '[{ "@type": "OpenUri", "name": "View issue", "targets": [{ "os": "default", "uri": "${{ github.event.issue.html_url }}" }] }]'
           theme_color: 'f83838'
 
-  issue_closed:
-    if: github.event_name == 'issues' && github.event.action == 'closed'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: aliencube/microsoft-teams-actions@v0.8.0
+      - name: Issue closed
+        if: github.event_name == 'issues' && github.event.action == 'closed'
+        uses: aliencube/microsoft-teams-actions@v0.8.0
         with:
           webhook_uri: ${{ secrets.teams-webhook-url }}
           title: '&#x1F3C1;&nbsp; Issue #${{ github.event.issue.number }} closed: "${{ github.event.issue.title }}"'
@@ -46,11 +45,9 @@ jobs:
           actions: '[{ "@type": "OpenUri", "name": "View issue", "targets": [{ "os": "default", "uri": "${{ github.event.issue.html_url }}" }] }]'
           theme_color: '58a6ff'
 
-  issue_comment_new:
-    if: github.event_name == 'issue_comment' && github.event.action == 'created'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: aliencube/microsoft-teams-actions@v0.8.0
+      - name: New issue comment
+        if: github.event_name == 'issue_comment' && github.event.action == 'created'
+        uses: aliencube/microsoft-teams-actions@v0.8.0
         with:
           webhook_uri: ${{ secrets.teams-webhook-url }}
           title: '&#x1F4AC;&nbsp; New comment on issue #${{ github.event.issue.number }}: "${{ github.event.issue.title }}"'
@@ -59,22 +56,18 @@ jobs:
           actions: '[{ "@type": "OpenUri", "name": "View comment", "targets": [{ "os": "default", "uri": "${{ github.event.comment.html_url }}" }] }]'
           theme_color: '58a6ff'
 
-  watch_star_new:
-    if: github.event_name == 'watch' && github.event.action == 'started'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: aliencube/microsoft-teams-actions@v0.8.0
+      - name: New star
+        if: github.event_name == 'watch' && github.event.action == 'started'
+        uses: aliencube/microsoft-teams-actions@v0.8.0
         with:
           webhook_uri: ${{ secrets.teams-webhook-url }}
           title: '&#x2B50;&nbsp; New star!'
           summary: '&#x2B50;&nbsp; New star!'
           theme_color: 'e3c700'
 
-  pull_request_new:
-    if: github.event_name == 'pull_request_target' && github.event.action == 'opened'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: aliencube/microsoft-teams-actions@v0.8.0
+      - name: New pull request
+        if: github.event_name == 'pull_request_target' && github.event.action == 'opened'
+        uses: aliencube/microsoft-teams-actions@v0.8.0
         with:
           webhook_uri: ${{ secrets.teams-webhook-url }}
           title: '&#x1F6E0;&nbsp; New pull request #${{ github.event.pull_request.number }}: "${{ github.event.pull_request.title }}"'
