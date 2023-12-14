@@ -119,8 +119,8 @@ jobs:
       - uses: aliencube/microsoft-teams-actions@v0.8.0
         with:
           webhook_uri: ${{ secrets.teams-webhook-url }}
-          title: '&#x1F4E6;&nbsp; New release published: Version ${{needs.version-check.outputs.typo3-ext-version}}'
-          summary: '&#x1F4E6;&nbsp; New release published: Version ${{needs.version-check.outputs.typo3-ext-version}}'
+          title: '📦 New release published: Version ${{needs.version-check.outputs.typo3-ext-version}}'
+          summary: '📦 New release published: Version ${{needs.version-check.outputs.typo3-ext-version}}'
           theme_color: "07a630"
           sections: '[{ "activityText": ${{ env.RELEASE_NOTES }} }]'
           actions: '[{ "@type": "OpenUri", "name": "Show release", "targets": [{ "os": "default", "uri": "https://github.com/${{ github.repository }}/releases/tag/v${{needs.version-check.outputs.typo3-ext-version}}" }] }, { "@type": "OpenUri", "name": "Download zip", "targets": [{ "os": "default", "uri": "https://github.com/${{ github.repository }}/archive/refs/tags/v${{needs.version-check.outputs.typo3-ext-version}}.zip" }] }]'
