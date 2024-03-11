@@ -6,7 +6,7 @@ files_with_wrong_permissions=$(
         ':!*.sh' \
         ':!php-cs-fixer' \
         ':!dev-tools/*.php' \
-        ':!init-typo3' \
+        ':!.ddev/commands/web/init-typo3' \
     | grep -P "^100755 " \
     | sort -fh
 )
