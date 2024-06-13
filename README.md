@@ -33,37 +33,26 @@ jobs:
 
 ## TYPO3 extension release
 
-The release action compares the extension version in the `ext_emconf.php` with the latest release tag and possibly triggers a release.
-
-Release steps:
-
-    1. Install and build node (optional)
-    2. Clean up
-    3. Create & merge pull request
-    4. Tag and publish release
-    5. Notification via Teams (optional)
+This actions creates a new github release, if not existing for the pushed tag. It uses [typo3/tailor](https://github.com/TYPO3/tailor) to publish the extension to the TER.
 
 Input|Type|Required|Description
 -|-|-|-
-`base-branch`|input|yes|Name of the branch the action will create and merge a pull request
-`teams-webhook-url`|secret|false|Microsoft Teams webhook for notification after successful release
-`build-assets`|input|false|Whether to install and build node assets
-
-Example usage with all inputs:
+`typo3-extension-key`|input|true|Extension key
+`typo3-api-token`|secret|true|Token of typo3.org account that has access to the extension
 
 ```yaml
-name: Build and release TYPO3 extension
-
-on: [ push ]
+name: Release
+on:
+    push:
+        tags:
+            - '*'
 
 jobs:
-  release:
-    if: github.ref == 'refs/heads/development'
-    uses: maikschneider/reusable-workflows/.github/workflows/release-typo3-extension.yml@main
-    secrets:
-      teams-webhook-url: ${{ secrets.TEAMS_WEBHOOK_URL }}
-    with:
-      base-branch: master
-      build-assets: true
+    ter-publish:
+        uses: maikschneider/reusable-workflows/.github/workflows/release.yml@main
+        secrets:
+            typo3-api-token: ${{ secrets.TYPO3_API_TOKEN }}
+        with:
+            typo3-extension-key: 'my_extension'
 
 ```

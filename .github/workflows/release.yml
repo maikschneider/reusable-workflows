@@ -1,8 +1,14 @@
 name: Release
+
 on:
-  push:
-    tags:
-      - '*'
+  workflow_call:
+    inputs:
+      typo3-extension-key:
+        required: true
+        type: string
+    secrets:
+      typo3-api-token:
+        required: true
 
 jobs:
   # Job: Create release
@@ -36,8 +42,8 @@ jobs:
     needs: [release]
     runs-on: ubuntu-latest
     env:
-      TYPO3_EXTENSION_KEY: xm_formcycle
-      TYPO3_API_TOKEN: ${{ secrets.TYPO3_API_TOKEN }}
+      TYPO3_EXTENSION_KEY: ${{ inputs.typo3-extension-key }}
+      TYPO3_API_TOKEN: ${{ secrets.typo3-api-token }}
       TYPO3_EXCLUDE_FROM_PACKAGING: packaging_exclude.php
     steps:
       - uses: actions/checkout@v4
