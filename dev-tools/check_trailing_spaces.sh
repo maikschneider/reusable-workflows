@@ -5,7 +5,9 @@ files_with_trailing_spaces=$(
     git grep -EIn "\\s$" \
         ':!doc/rules/*' \
         ':!tests/Fixtures/*' \
+        ':!tests/*/Fixtures/*' \
         ':!Tests/Fixtures/*' \
+        ':!Tests/*/Fixtures/*' \
         ':!Libraries/*' \
     | sort -fh
 )
