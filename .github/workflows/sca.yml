@@ -56,8 +56,6 @@ jobs:
           restore-keys: |
             composer-${{ runner.os }}-${{ inputs.php-version }}-${{ hashFiles('**/composer.*') }}-
             composer-${{ runner.os }}-${{ inputs.php-version }}-
-            composer-${{ runner.os }}-
-            composer-
 
       - name: Install dependencies
         uses: nick-invision/retry@v2
