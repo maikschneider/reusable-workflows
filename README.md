@@ -11,6 +11,7 @@ Available events:
 * Closed issue
 * New star
 * New pull request
+* New PR review comment
 * New release
 
 Input|Type|Required|Description
@@ -22,7 +23,7 @@ To trigger all notifications from your repository, simply add the following `.gi
 ```yaml
 name: Send notifications
 
-on: [release, issues, issue_comment, watch, pull_request_target]
+on: [release, issues, issue_comment, watch, pull_request_target, pull_request_review_comment]
 
 jobs:
   notification:
