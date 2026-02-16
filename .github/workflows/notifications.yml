@@ -77,7 +77,7 @@ jobs:
           theme_color: 'e3c700'
 
       - name: New pull request
-        if: github.event_name == 'pull_request_target' && github.event.action == 'opened'
+        if: github.event_name == 'pull_request_target' && github.event.action == 'opened' && github.actor != 'renovate' && github.event.sender.type != 'Bot'
         uses: aliencube/microsoft-teams-actions@v0.8.0
         with:
           webhook_uri: ${{ secrets.teams-webhook-url }}
