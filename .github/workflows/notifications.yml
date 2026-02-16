@@ -46,7 +46,7 @@ jobs:
           theme_color: '58a6ff'
 
       - name: New issue comment
-        if: github.event_name == 'issue_comment' && github.event.action == 'created' && github.actor != 'coderabbitai' && github.event.sender.type != 'Bot'
+        if: github.event_name == 'issue_comment' && github.event.action == 'created' && github.actor != 'coderabbitai' && github.actor != 'codecov' && github.event.sender.type != 'Bot'
         uses: aliencube/microsoft-teams-actions@v0.8.0
         with:
           webhook_uri: ${{ secrets.teams-webhook-url }}
@@ -57,7 +57,7 @@ jobs:
           theme_color: '58a6ff'
 
       - name: New PR review comment
-        if: github.event_name == 'pull_request_review_comment' && github.event.action == 'created' && github.actor != 'coderabbitai' && github.event.sender.type != 'Bot'
+        if: github.event_name == 'pull_request_review_comment' && github.event.action == 'created' && github.actor != 'coderabbitai' && github.actor != 'codecov' && github.event.sender.type != 'Bot'
         uses: aliencube/microsoft-teams-actions@v0.8.0
         with:
           webhook_uri: ${{ secrets.teams-webhook-url }}
