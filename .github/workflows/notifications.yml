@@ -2,6 +2,12 @@ name: notifications
 
 on:
   workflow_call:
+    inputs:
+      image-url:
+        description: 'Optional image URL to display in the card header (e.g. extension icon)'
+        required: false
+        type: string
+        default: ''
     secrets:
       teams-webhook-url:
         required: true
@@ -17,6 +23,8 @@ jobs:
         if: github.event_name == 'release' && github.event.action == 'published'
         env:
           WEBHOOK_URL: ${{ secrets.teams-webhook-url }}
+          IMAGE_URL: ${{ inputs.image-url }}
+          REPO_NAME: ${{ github.repository }}
           RELEASE_TAG: ${{ github.event.release.tag_name }}
           RELEASE_NAME: ${{ github.event.release.name }}
           RELEASE_BODY: ${{ github.event.release.body }}
@@ -24,6 +32,8 @@ jobs:
           RELEASE_ZIP: ${{ github.event.release.zipball_url }}
         run: |
           jq -n \
+            --arg repo "$REPO_NAME" \
+            --arg image "$IMAGE_URL" \
             --arg title "📦 New release: $RELEASE_TAG" \
             --arg name "$RELEASE_NAME" \
             --arg body "$(echo "$RELEASE_BODY" | head -c 2000)" \
@@ -39,6 +49,14 @@ jobs:
                   type: "AdaptiveCard",
                   version: "1.4",
                   body: [
+                    (if $image != "" then
+                      { type: "ColumnSet", columns: [
+                        { type: "Column", width: "auto", items: [{ type: "Image", url: $image, size: "small" }] },
+                        { type: "Column", width: "stretch", items: [{ type: "TextBlock", text: $repo, weight: "bolder", size: "small", color: "accent" }] }
+                      ]}
+                    else
+                      { type: "TextBlock", text: $repo, weight: "bolder", size: "small", color: "accent" }
+                    end),
                     { type: "TextBlock", size: "medium", weight: "bolder", text: $title, color: "good" },
                     { type: "TextBlock", text: $name, weight: "bolder", wrap: true },
                     { type: "TextBlock", text: $body, wrap: true }
@@ -55,6 +73,8 @@ jobs:
         if: github.event_name == 'issues' && github.event.action == 'opened'
         env:
           WEBHOOK_URL: ${{ secrets.teams-webhook-url }}
+          IMAGE_URL: ${{ inputs.image-url }}
+          REPO_NAME: ${{ github.repository }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}
           ISSUE_TITLE: ${{ github.event.issue.title }}
           ISSUE_BODY: ${{ github.event.issue.body }}
@@ -64,6 +84,8 @@ jobs:
           ISSUE_AUTHOR_AVATAR: ${{ github.event.issue.user.avatar_url }}
         run: |
           jq -n \
+            --arg repo "$REPO_NAME" \
+            --arg image "$IMAGE_URL" \
             --arg title "🔥 New issue #${ISSUE_NUMBER}: \"${ISSUE_TITLE}\"" \
             --arg body "$(echo "$ISSUE_BODY" | head -c 2000)" \
             --arg url "$ISSUE_URL" \
@@ -80,6 +102,14 @@ jobs:
                   type: "AdaptiveCard",
                   version: "1.4",
                   body: [
+                    (if $image != "" then
+                      { type: "ColumnSet", columns: [
+                        { type: "Column", width: "auto", items: [{ type: "Image", url: $image, size: "small" }] },
+                        { type: "Column", width: "stretch", items: [{ type: "TextBlock", text: $repo, weight: "bolder", size: "small", color: "accent" }] }
+                      ]}
+                    else
+                      { type: "TextBlock", text: $repo, weight: "bolder", size: "small", color: "accent" }
+                    end),
                     { type: "TextBlock", size: "medium", weight: "bolder", text: $title, color: "attention" },
                     {
                       type: "ColumnSet",
@@ -101,11 +131,15 @@ jobs:
         if: github.event_name == 'issues' && github.event.action == 'closed'
         env:
           WEBHOOK_URL: ${{ secrets.teams-webhook-url }}
+          IMAGE_URL: ${{ inputs.image-url }}
+          REPO_NAME: ${{ github.repository }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}
           ISSUE_TITLE: ${{ github.event.issue.title }}
           ISSUE_URL: ${{ github.event.issue.html_url }}
         run: |
           jq -n \
+            --arg repo "$REPO_NAME" \
+            --arg image "$IMAGE_URL" \
             --arg title "🏁 Issue #${ISSUE_NUMBER} closed: \"${ISSUE_TITLE}\"" \
             --arg url "$ISSUE_URL" \
             '{
@@ -118,6 +152,14 @@ jobs:
                   type: "AdaptiveCard",
                   version: "1.4",
                   body: [
+                    (if $image != "" then
+                      { type: "ColumnSet", columns: [
+                        { type: "Column", width: "auto", items: [{ type: "Image", url: $image, size: "small" }] },
+                        { type: "Column", width: "stretch", items: [{ type: "TextBlock", text: $repo, weight: "bolder", size: "small", color: "accent" }] }
+                      ]}
+                    else
+                      { type: "TextBlock", text: $repo, weight: "bolder", size: "small", color: "accent" }
+                    end),
                     { type: "TextBlock", size: "medium", weight: "bolder", text: $title, color: "accent" }
                   ],
                   actions: [
@@ -131,6 +173,8 @@ jobs:
         if: github.event_name == 'issue_comment' && github.event.action == 'created' && github.actor != 'coderabbitai' && github.actor != 'codecov-commenter' && github.event.sender.type != 'Bot'
         env:
           WEBHOOK_URL: ${{ secrets.teams-webhook-url }}
+          IMAGE_URL: ${{ inputs.image-url }}
+          REPO_NAME: ${{ github.repository }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}
           ISSUE_TITLE: ${{ github.event.issue.title }}
           COMMENT_BODY: ${{ github.event.comment.body }}
@@ -140,6 +184,8 @@ jobs:
           COMMENT_AUTHOR_AVATAR: ${{ github.event.comment.user.avatar_url }}
         run: |
           jq -n \
+            --arg repo "$REPO_NAME" \
+            --arg image "$IMAGE_URL" \
             --arg title "💬 New comment on issue #${ISSUE_NUMBER}: \"${ISSUE_TITLE}\"" \
             --arg body "$(echo "$COMMENT_BODY" | head -c 2000)" \
             --arg url "$COMMENT_URL" \
@@ -156,6 +202,14 @@ jobs:
                   type: "AdaptiveCard",
                   version: "1.4",
                   body: [
+                    (if $image != "" then
+                      { type: "ColumnSet", columns: [
+                        { type: "Column", width: "auto", items: [{ type: "Image", url: $image, size: "small" }] },
+                        { type: "Column", width: "stretch", items: [{ type: "TextBlock", text: $repo, weight: "bolder", size: "small", color: "accent" }] }
+                      ]}
+                    else
+                      { type: "TextBlock", text: $repo, weight: "bolder", size: "small", color: "accent" }
+                    end),
                     { type: "TextBlock", size: "medium", weight: "bolder", text: $title, color: "accent" },
                     {
                       type: "ColumnSet",
@@ -177,6 +231,8 @@ jobs:
         if: github.event_name == 'pull_request_review_comment' && github.event.action == 'created' && github.actor != 'coderabbitai' && github.actor != 'codecov-commenter' && github.event.sender.type != 'Bot'
         env:
           WEBHOOK_URL: ${{ secrets.teams-webhook-url }}
+          IMAGE_URL: ${{ inputs.image-url }}
+          REPO_NAME: ${{ github.repository }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
           PR_TITLE: ${{ github.event.pull_request.title }}
           COMMENT_BODY: ${{ github.event.comment.body }}
@@ -186,6 +242,8 @@ jobs:
           COMMENT_AUTHOR_AVATAR: ${{ github.event.comment.user.avatar_url }}
         run: |
           jq -n \
+            --arg repo "$REPO_NAME" \
+            --arg image "$IMAGE_URL" \
             --arg title "💬 New review comment on PR #${PR_NUMBER}: \"${PR_TITLE}\"" \
             --arg body "$(echo "$COMMENT_BODY" | head -c 2000)" \
             --arg url "$COMMENT_URL" \
@@ -202,6 +260,14 @@ jobs:
                   type: "AdaptiveCard",
                   version: "1.4",
                   body: [
+                    (if $image != "" then
+                      { type: "ColumnSet", columns: [
+                        { type: "Column", width: "auto", items: [{ type: "Image", url: $image, size: "small" }] },
+                        { type: "Column", width: "stretch", items: [{ type: "TextBlock", text: $repo, weight: "bolder", size: "small", color: "accent" }] }
+                      ]}
+                    else
+                      { type: "TextBlock", text: $repo, weight: "bolder", size: "small", color: "accent" }
+                    end),
                     { type: "TextBlock", size: "medium", weight: "bolder", text: $title, color: "accent" },
                     {
                       type: "ColumnSet",
@@ -223,10 +289,13 @@ jobs:
         if: github.event_name == 'watch' && github.event.action == 'started'
         env:
           WEBHOOK_URL: ${{ secrets.teams-webhook-url }}
+          IMAGE_URL: ${{ inputs.image-url }}
           REPO_NAME: ${{ github.repository }}
           ACTOR: ${{ github.actor }}
         run: |
           jq -n \
+            --arg repo "$REPO_NAME" \
+            --arg image "$IMAGE_URL" \
             --arg title "⭐️ New star on ${REPO_NAME} by ${ACTOR}!" \
             '{
               type: "message",
@@ -238,6 +307,14 @@ jobs:
                   type: "AdaptiveCard",
                   version: "1.4",
                   body: [
+                    (if $image != "" then
+                      { type: "ColumnSet", columns: [
+                        { type: "Column", width: "auto", items: [{ type: "Image", url: $image, size: "small" }] },
+                        { type: "Column", width: "stretch", items: [{ type: "TextBlock", text: $repo, weight: "bolder", size: "small", color: "accent" }] }
+                      ]}
+                    else
+                      { type: "TextBlock", text: $repo, weight: "bolder", size: "small", color: "accent" }
+                    end),
                     { type: "TextBlock", size: "medium", weight: "bolder", text: $title, color: "warning" }
                   ]
                 }
@@ -248,6 +325,8 @@ jobs:
         if: github.event_name == 'pull_request_target' && github.event.action == 'opened' && github.actor != 'renovate' && github.event.sender.type != 'Bot'
         env:
           WEBHOOK_URL: ${{ secrets.teams-webhook-url }}
+          IMAGE_URL: ${{ inputs.image-url }}
+          REPO_NAME: ${{ github.repository }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
           PR_TITLE: ${{ github.event.pull_request.title }}
           PR_BODY: ${{ github.event.pull_request.body }}
@@ -261,6 +340,8 @@ jobs:
           PR_DELETIONS: ${{ github.event.pull_request.deletions }}
         run: |
           jq -n \
+            --arg repo "$REPO_NAME" \
+            --arg image "$IMAGE_URL" \
             --arg title "🛠️ New pull request #${PR_NUMBER}: \"${PR_TITLE}\"" \
             --arg body "$(echo "$PR_BODY" | head -c 2000)" \
             --arg url "$PR_URL" \
@@ -281,6 +362,14 @@ jobs:
                   type: "AdaptiveCard",
                   version: "1.4",
                   body: [
+                    (if $image != "" then
+                      { type: "ColumnSet", columns: [
+                        { type: "Column", width: "auto", items: [{ type: "Image", url: $image, size: "small" }] },
+                        { type: "Column", width: "stretch", items: [{ type: "TextBlock", text: $repo, weight: "bolder", size: "small", color: "accent" }] }
+                      ]}
+                    else
+                      { type: "TextBlock", text: $repo, weight: "bolder", size: "small", color: "accent" }
+                    end),
                     { type: "TextBlock", size: "medium", weight: "bolder", text: $title, color: "attention" },
                     {
                       type: "ColumnSet",
