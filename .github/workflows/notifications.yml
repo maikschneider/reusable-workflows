@@ -2,6 +2,12 @@ name: notifications
 
 on:
   workflow_call:
+    inputs:
+      image-url:
+        description: 'Optional image URL to display in the card header (e.g. extension icon)'
+        required: false
+        type: string
+        default: ''
     secrets:
       teams-webhook-url:
         required: true
@@ -10,79 +16,382 @@ jobs:
 
   microsoft_teams:
     name: Microsoft Teams Notifications
-    runs-on: ubuntu-latest  
+    runs-on: ubuntu-latest
     steps:
 
       - name: New release
         if: github.event_name == 'release' && github.event.action == 'published'
-        uses: aliencube/microsoft-teams-actions@v0.8.0
-        with:
-          webhook_uri: ${{ secrets.teams-webhook-url }}
-          title: '📦 New release: ${{ github.event.release.tag_name }}'
-          summary: '📦 New release: ${{ github.event.release.tag_name }}'
-          theme_color: "07a630"
-          sections: '[{ "activityTitle": "${{ github.event.release.name }}", "activitySubtitle": ${{ toJSON(github.event.release.body) }} }]'
-          actions: '[{ "@type": "OpenUri", "name": "Show release", "targets": [{ "os": "default", "uri": "${{ github.event.release.html_url }}" }] }, { "@type": "OpenUri", "name": "Download zip", "targets": [{ "os": "default", "uri": "${{ github.event.release.zipball_url }}" }] }]'
+        env:
+          WEBHOOK_URL: ${{ secrets.teams-webhook-url }}
+          IMAGE_URL: ${{ inputs.image-url }}
+          REPO_NAME: ${{ github.repository }}
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+          RELEASE_NAME: ${{ github.event.release.name }}
+          RELEASE_BODY: ${{ github.event.release.body }}
+          RELEASE_URL: ${{ github.event.release.html_url }}
+          RELEASE_ZIP: ${{ github.event.release.zipball_url }}
+        run: |
+          jq -n \
+            --arg repo "$REPO_NAME" \
+            --arg image "$IMAGE_URL" \
+            --arg title "📦 New release: $RELEASE_TAG" \
+            --arg name "$RELEASE_NAME" \
+            --arg body "$(echo "$RELEASE_BODY" | head -c 2000)" \
+            --arg url "$RELEASE_URL" \
+            --arg zip "$RELEASE_ZIP" \
+            '{
+              type: "message",
+              attachments: [{
+                contentType: "application/vnd.microsoft.card.adaptive",
+                contentUrl: null,
+                content: {
+                  "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+                  type: "AdaptiveCard",
+                  version: "1.4",
+                  body: [
+                    (if $image != "" then
+                      { type: "ColumnSet", columns: [
+                        { type: "Column", width: "auto", items: [{ type: "Image", url: $image, size: "small" }] },
+                        { type: "Column", width: "stretch", items: [{ type: "TextBlock", text: $repo, weight: "bolder", size: "small", color: "accent" }] }
+                      ]}
+                    else
+                      { type: "TextBlock", text: $repo, weight: "bolder", size: "small", color: "accent" }
+                    end),
+                    { type: "TextBlock", size: "medium", weight: "bolder", text: $title, color: "good" },
+                    { type: "TextBlock", text: $name, weight: "bolder", wrap: true },
+                    { type: "TextBlock", text: $body, wrap: true }
+                  ],
+                  actions: [
+                    { type: "Action.OpenUrl", title: "Show release", url: $url },
+                    { type: "Action.OpenUrl", title: "Download zip", url: $zip }
+                  ]
+                }
+              }]
+            }' | curl -sSf -X POST -H "Content-Type: application/json" -d @- "$WEBHOOK_URL"
 
       - name: New issue
         if: github.event_name == 'issues' && github.event.action == 'opened'
-        uses: aliencube/microsoft-teams-actions@v0.8.0
-        with:
-          webhook_uri: ${{ secrets.teams-webhook-url }}
-          title: '🔥 New issue #${{ github.event.issue.number }}: "${{ github.event.issue.title }}"'
-          summary: '🔥 New issue #${{ github.event.issue.number }}: "${{ github.event.issue.title }}"'
-          sections: '[{ "activityTitle": "[${{ github.event.issue.user.login }}](${{ github.event.issue.user.html_url }})", "activitySubtitle": ${{ toJSON(github.event.issue.body) }}, "activityImage": "${{ github.event.issue.user.avatar_url }}" }]'
-          actions: '[{ "@type": "OpenUri", "name": "View issue", "targets": [{ "os": "default", "uri": "${{ github.event.issue.html_url }}" }] }]'
-          theme_color: 'f83838'
+        env:
+          WEBHOOK_URL: ${{ secrets.teams-webhook-url }}
+          IMAGE_URL: ${{ inputs.image-url }}
+          REPO_NAME: ${{ github.repository }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          ISSUE_TITLE: ${{ github.event.issue.title }}
+          ISSUE_BODY: ${{ github.event.issue.body }}
+          ISSUE_URL: ${{ github.event.issue.html_url }}
+          ISSUE_AUTHOR: ${{ github.event.issue.user.login }}
+          ISSUE_AUTHOR_URL: ${{ github.event.issue.user.html_url }}
+          ISSUE_AUTHOR_AVATAR: ${{ github.event.issue.user.avatar_url }}
+        run: |
+          jq -n \
+            --arg repo "$REPO_NAME" \
+            --arg image "$IMAGE_URL" \
+            --arg title "🔥 New issue #${ISSUE_NUMBER}: \"${ISSUE_TITLE}\"" \
+            --arg body "$(echo "$ISSUE_BODY" | head -c 2000)" \
+            --arg url "$ISSUE_URL" \
+            --arg author "$ISSUE_AUTHOR" \
+            --arg author_url "$ISSUE_AUTHOR_URL" \
+            --arg avatar "$ISSUE_AUTHOR_AVATAR" \
+            '{
+              type: "message",
+              attachments: [{
+                contentType: "application/vnd.microsoft.card.adaptive",
+                contentUrl: null,
+                content: {
+                  "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+                  type: "AdaptiveCard",
+                  version: "1.4",
+                  body: [
+                    (if $image != "" then
+                      { type: "ColumnSet", columns: [
+                        { type: "Column", width: "auto", items: [{ type: "Image", url: $image, size: "small" }] },
+                        { type: "Column", width: "stretch", items: [{ type: "TextBlock", text: $repo, weight: "bolder", size: "small", color: "accent" }] }
+                      ]}
+                    else
+                      { type: "TextBlock", text: $repo, weight: "bolder", size: "small", color: "accent" }
+                    end),
+                    { type: "TextBlock", size: "medium", weight: "bolder", text: $title, color: "attention" },
+                    {
+                      type: "ColumnSet",
+                      columns: [
+                        { type: "Column", width: "auto", items: [{ type: "Image", url: $avatar, size: "small", style: "person" }] },
+                        { type: "Column", width: "stretch", items: [{ type: "TextBlock", text: ("[\($author)](\($author_url))"), weight: "bolder" }] }
+                      ]
+                    },
+                    { type: "TextBlock", text: $body, wrap: true }
+                  ],
+                  actions: [
+                    { type: "Action.OpenUrl", title: "View issue", url: $url }
+                  ]
+                }
+              }]
+            }' | curl -sSf -X POST -H "Content-Type: application/json" -d @- "$WEBHOOK_URL"
 
       - name: Issue closed
         if: github.event_name == 'issues' && github.event.action == 'closed'
-        uses: aliencube/microsoft-teams-actions@v0.8.0
-        with:
-          webhook_uri: ${{ secrets.teams-webhook-url }}
-          title: '🏁 Issue #${{ github.event.issue.number }} closed: "${{ github.event.issue.title }}"'
-          summary: '🏁 Issue #${{ github.event.issue.number }} closed: "${{ github.event.issue.title }}"'
-          actions: '[{ "@type": "OpenUri", "name": "View issue", "targets": [{ "os": "default", "uri": "${{ github.event.issue.html_url }}" }] }]'
-          theme_color: '58a6ff'
+        env:
+          WEBHOOK_URL: ${{ secrets.teams-webhook-url }}
+          IMAGE_URL: ${{ inputs.image-url }}
+          REPO_NAME: ${{ github.repository }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          ISSUE_TITLE: ${{ github.event.issue.title }}
+          ISSUE_URL: ${{ github.event.issue.html_url }}
+        run: |
+          jq -n \
+            --arg repo "$REPO_NAME" \
+            --arg image "$IMAGE_URL" \
+            --arg title "🏁 Issue #${ISSUE_NUMBER} closed: \"${ISSUE_TITLE}\"" \
+            --arg url "$ISSUE_URL" \
+            '{
+              type: "message",
+              attachments: [{
+                contentType: "application/vnd.microsoft.card.adaptive",
+                contentUrl: null,
+                content: {
+                  "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+                  type: "AdaptiveCard",
+                  version: "1.4",
+                  body: [
+                    (if $image != "" then
+                      { type: "ColumnSet", columns: [
+                        { type: "Column", width: "auto", items: [{ type: "Image", url: $image, size: "small" }] },
+                        { type: "Column", width: "stretch", items: [{ type: "TextBlock", text: $repo, weight: "bolder", size: "small", color: "accent" }] }
+                      ]}
+                    else
+                      { type: "TextBlock", text: $repo, weight: "bolder", size: "small", color: "accent" }
+                    end),
+                    { type: "TextBlock", size: "medium", weight: "bolder", text: $title, color: "accent" }
+                  ],
+                  actions: [
+                    { type: "Action.OpenUrl", title: "View issue", url: $url }
+                  ]
+                }
+              }]
+            }' | curl -sSf -X POST -H "Content-Type: application/json" -d @- "$WEBHOOK_URL"
 
       - name: New issue comment
         if: github.event_name == 'issue_comment' && github.event.action == 'created' && github.actor != 'coderabbitai' && github.actor != 'codecov-commenter' && github.event.sender.type != 'Bot'
-        uses: aliencube/microsoft-teams-actions@v0.8.0
-        with:
-          webhook_uri: ${{ secrets.teams-webhook-url }}
-          title: '💬 New comment on issue #${{ github.event.issue.number }}: "${{ github.event.issue.title }}"'
-          summary: '💬 New comment on issue #${{ github.event.issue.number }}: "${{ github.event.issue.title }}"'
-          sections: '[{ "activityTitle": "[${{ github.event.comment.user.login }}](${{ github.event.comment.user.html_url }})", "activitySubtitle": ${{ toJSON(github.event.comment.body) }}, "activityImage": "${{ github.event.comment.user.avatar_url }}" }]'
-          actions: '[{ "@type": "OpenUri", "name": "View comment", "targets": [{ "os": "default", "uri": "${{ github.event.comment.html_url }}" }] }]'
-          theme_color: '58a6ff'
+        env:
+          WEBHOOK_URL: ${{ secrets.teams-webhook-url }}
+          IMAGE_URL: ${{ inputs.image-url }}
+          REPO_NAME: ${{ github.repository }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          ISSUE_TITLE: ${{ github.event.issue.title }}
+          COMMENT_BODY: ${{ github.event.comment.body }}
+          COMMENT_URL: ${{ github.event.comment.html_url }}
+          COMMENT_AUTHOR: ${{ github.event.comment.user.login }}
+          COMMENT_AUTHOR_URL: ${{ github.event.comment.user.html_url }}
+          COMMENT_AUTHOR_AVATAR: ${{ github.event.comment.user.avatar_url }}
+        run: |
+          jq -n \
+            --arg repo "$REPO_NAME" \
+            --arg image "$IMAGE_URL" \
+            --arg title "💬 New comment on issue #${ISSUE_NUMBER}: \"${ISSUE_TITLE}\"" \
+            --arg body "$(echo "$COMMENT_BODY" | head -c 2000)" \
+            --arg url "$COMMENT_URL" \
+            --arg author "$COMMENT_AUTHOR" \
+            --arg author_url "$COMMENT_AUTHOR_URL" \
+            --arg avatar "$COMMENT_AUTHOR_AVATAR" \
+            '{
+              type: "message",
+              attachments: [{
+                contentType: "application/vnd.microsoft.card.adaptive",
+                contentUrl: null,
+                content: {
+                  "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+                  type: "AdaptiveCard",
+                  version: "1.4",
+                  body: [
+                    (if $image != "" then
+                      { type: "ColumnSet", columns: [
+                        { type: "Column", width: "auto", items: [{ type: "Image", url: $image, size: "small" }] },
+                        { type: "Column", width: "stretch", items: [{ type: "TextBlock", text: $repo, weight: "bolder", size: "small", color: "accent" }] }
+                      ]}
+                    else
+                      { type: "TextBlock", text: $repo, weight: "bolder", size: "small", color: "accent" }
+                    end),
+                    { type: "TextBlock", size: "medium", weight: "bolder", text: $title, color: "accent" },
+                    {
+                      type: "ColumnSet",
+                      columns: [
+                        { type: "Column", width: "auto", items: [{ type: "Image", url: $avatar, size: "small", style: "person" }] },
+                        { type: "Column", width: "stretch", items: [{ type: "TextBlock", text: ("[\($author)](\($author_url))"), weight: "bolder" }] }
+                      ]
+                    },
+                    { type: "TextBlock", text: $body, wrap: true }
+                  ],
+                  actions: [
+                    { type: "Action.OpenUrl", title: "View comment", url: $url }
+                  ]
+                }
+              }]
+            }' | curl -sSf -X POST -H "Content-Type: application/json" -d @- "$WEBHOOK_URL"
 
       - name: New PR review comment
         if: github.event_name == 'pull_request_review_comment' && github.event.action == 'created' && github.actor != 'coderabbitai' && github.actor != 'codecov-commenter' && github.event.sender.type != 'Bot'
-        uses: aliencube/microsoft-teams-actions@v0.8.0
-        with:
-          webhook_uri: ${{ secrets.teams-webhook-url }}
-          title: '💬 New review comment on PR #${{ github.event.pull_request.number }}: "${{ github.event.pull_request.title }}"'
-          summary: '💬 New review comment on PR #${{ github.event.pull_request.number }}: "${{ github.event.pull_request.title }}"'
-          sections: '[{ "activityTitle": "[${{ github.event.comment.user.login }}](${{ github.event.comment.user.html_url }})", "activitySubtitle": ${{ toJSON(github.event.comment.body) }}, "activityImage": "${{ github.event.comment.user.avatar_url }}" }]'
-          actions: '[{ "@type": "OpenUri", "name": "View comment", "targets": [{ "os": "default", "uri": "${{ github.event.comment.html_url }}" }] }]'
-          theme_color: '58a6ff'
+        env:
+          WEBHOOK_URL: ${{ secrets.teams-webhook-url }}
+          IMAGE_URL: ${{ inputs.image-url }}
+          REPO_NAME: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          COMMENT_BODY: ${{ github.event.comment.body }}
+          COMMENT_URL: ${{ github.event.comment.html_url }}
+          COMMENT_AUTHOR: ${{ github.event.comment.user.login }}
+          COMMENT_AUTHOR_URL: ${{ github.event.comment.user.html_url }}
+          COMMENT_AUTHOR_AVATAR: ${{ github.event.comment.user.avatar_url }}
+        run: |
+          jq -n \
+            --arg repo "$REPO_NAME" \
+            --arg image "$IMAGE_URL" \
+            --arg title "💬 New review comment on PR #${PR_NUMBER}: \"${PR_TITLE}\"" \
+            --arg body "$(echo "$COMMENT_BODY" | head -c 2000)" \
+            --arg url "$COMMENT_URL" \
+            --arg author "$COMMENT_AUTHOR" \
+            --arg author_url "$COMMENT_AUTHOR_URL" \
+            --arg avatar "$COMMENT_AUTHOR_AVATAR" \
+            '{
+              type: "message",
+              attachments: [{
+                contentType: "application/vnd.microsoft.card.adaptive",
+                contentUrl: null,
+                content: {
+                  "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+                  type: "AdaptiveCard",
+                  version: "1.4",
+                  body: [
+                    (if $image != "" then
+                      { type: "ColumnSet", columns: [
+                        { type: "Column", width: "auto", items: [{ type: "Image", url: $image, size: "small" }] },
+                        { type: "Column", width: "stretch", items: [{ type: "TextBlock", text: $repo, weight: "bolder", size: "small", color: "accent" }] }
+                      ]}
+                    else
+                      { type: "TextBlock", text: $repo, weight: "bolder", size: "small", color: "accent" }
+                    end),
+                    { type: "TextBlock", size: "medium", weight: "bolder", text: $title, color: "accent" },
+                    {
+                      type: "ColumnSet",
+                      columns: [
+                        { type: "Column", width: "auto", items: [{ type: "Image", url: $avatar, size: "small", style: "person" }] },
+                        { type: "Column", width: "stretch", items: [{ type: "TextBlock", text: ("[\($author)](\($author_url))"), weight: "bolder" }] }
+                      ]
+                    },
+                    { type: "TextBlock", text: $body, wrap: true }
+                  ],
+                  actions: [
+                    { type: "Action.OpenUrl", title: "View comment", url: $url }
+                  ]
+                }
+              }]
+            }' | curl -sSf -X POST -H "Content-Type: application/json" -d @- "$WEBHOOK_URL"
 
       - name: New star
         if: github.event_name == 'watch' && github.event.action == 'started'
-        uses: aliencube/microsoft-teams-actions@v0.8.0
-        with:
-          webhook_uri: ${{ secrets.teams-webhook-url }}
-          title: '⭐️ New star!'
-          summary: '⭐️ New star!'
-          theme_color: 'e3c700'
+        env:
+          WEBHOOK_URL: ${{ secrets.teams-webhook-url }}
+          IMAGE_URL: ${{ inputs.image-url }}
+          REPO_NAME: ${{ github.repository }}
+          ACTOR: ${{ github.actor }}
+        run: |
+          jq -n \
+            --arg repo "$REPO_NAME" \
+            --arg image "$IMAGE_URL" \
+            --arg title "⭐️ New star on ${REPO_NAME} by ${ACTOR}!" \
+            '{
+              type: "message",
+              attachments: [{
+                contentType: "application/vnd.microsoft.card.adaptive",
+                contentUrl: null,
+                content: {
+                  "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+                  type: "AdaptiveCard",
+                  version: "1.4",
+                  body: [
+                    (if $image != "" then
+                      { type: "ColumnSet", columns: [
+                        { type: "Column", width: "auto", items: [{ type: "Image", url: $image, size: "small" }] },
+                        { type: "Column", width: "stretch", items: [{ type: "TextBlock", text: $repo, weight: "bolder", size: "small", color: "accent" }] }
+                      ]}
+                    else
+                      { type: "TextBlock", text: $repo, weight: "bolder", size: "small", color: "accent" }
+                    end),
+                    { type: "TextBlock", size: "medium", weight: "bolder", text: $title, color: "warning" }
+                  ]
+                }
+              }]
+            }' | curl -sSf -X POST -H "Content-Type: application/json" -d @- "$WEBHOOK_URL"
 
       - name: New pull request
         if: github.event_name == 'pull_request_target' && github.event.action == 'opened' && github.actor != 'renovate' && github.event.sender.type != 'Bot'
-        uses: aliencube/microsoft-teams-actions@v0.8.0
-        with:
-          webhook_uri: ${{ secrets.teams-webhook-url }}
-          title: '🛠️ New pull request #${{ github.event.pull_request.number }}: "${{ github.event.pull_request.title }}"'
-          summary: '🛠️ New pull request #${{ github.event.pull_request.number }}: "${{ github.event.pull_request.title }}"'
-          sections: '[{ "activityTitle": "[${{ github.event.pull_request.user.login }}](${{ github.event.pull_request.user.html_url }})", "activitySubtitle": ${{ toJSON(github.event.pull_request.body) }}, "activityImage": "${{ github.event.pull_request.user.avatar_url }}", "facts": [{"name": "Commits", "value": "${{ github.event.pull_request.commits }}"},{"name": "File changes", "value": "${{ github.event.pull_request.changed_files }}"},{"name": "Additions", "value": "${{ github.event.pull_request.additions }}"},{"name": "Deletions", "value": "${{ github.event.pull_request.deletions }}"}] }]'
-          actions: '[{ "@type": "OpenUri", "name": "View pull request", "targets": [{ "os": "default", "uri": "${{ github.event.pull_request.html_url }}" }] }]'
-          theme_color: 'f83838'
+        env:
+          WEBHOOK_URL: ${{ secrets.teams-webhook-url }}
+          IMAGE_URL: ${{ inputs.image-url }}
+          REPO_NAME: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_BODY: ${{ github.event.pull_request.body }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          PR_AUTHOR: ${{ github.event.pull_request.user.login }}
+          PR_AUTHOR_URL: ${{ github.event.pull_request.user.html_url }}
+          PR_AUTHOR_AVATAR: ${{ github.event.pull_request.user.avatar_url }}
+          PR_COMMITS: ${{ github.event.pull_request.commits }}
+          PR_CHANGED_FILES: ${{ github.event.pull_request.changed_files }}
+          PR_ADDITIONS: ${{ github.event.pull_request.additions }}
+          PR_DELETIONS: ${{ github.event.pull_request.deletions }}
+        run: |
+          jq -n \
+            --arg repo "$REPO_NAME" \
+            --arg image "$IMAGE_URL" \
+            --arg title "🛠️ New pull request #${PR_NUMBER}: \"${PR_TITLE}\"" \
+            --arg body "$(echo "$PR_BODY" | head -c 2000)" \
+            --arg url "$PR_URL" \
+            --arg author "$PR_AUTHOR" \
+            --arg author_url "$PR_AUTHOR_URL" \
+            --arg avatar "$PR_AUTHOR_AVATAR" \
+            --arg commits "$PR_COMMITS" \
+            --arg files "$PR_CHANGED_FILES" \
+            --arg additions "+${PR_ADDITIONS}" \
+            --arg deletions "-${PR_DELETIONS}" \
+            '{
+              type: "message",
+              attachments: [{
+                contentType: "application/vnd.microsoft.card.adaptive",
+                contentUrl: null,
+                content: {
+                  "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+                  type: "AdaptiveCard",
+                  version: "1.4",
+                  body: [
+                    (if $image != "" then
+                      { type: "ColumnSet", columns: [
+                        { type: "Column", width: "auto", items: [{ type: "Image", url: $image, size: "small" }] },
+                        { type: "Column", width: "stretch", items: [{ type: "TextBlock", text: $repo, weight: "bolder", size: "small", color: "accent" }] }
+                      ]}
+                    else
+                      { type: "TextBlock", text: $repo, weight: "bolder", size: "small", color: "accent" }
+                    end),
+                    { type: "TextBlock", size: "medium", weight: "bolder", text: $title, color: "attention" },
+                    {
+                      type: "ColumnSet",
+                      columns: [
+                        { type: "Column", width: "auto", items: [{ type: "Image", url: $avatar, size: "small", style: "person" }] },
+                        { type: "Column", width: "stretch", items: [{ type: "TextBlock", text: ("[\($author)](\($author_url))"), weight: "bolder" }] }
+                      ]
+                    },
+                    { type: "TextBlock", text: $body, wrap: true },
+                    {
+                      type: "FactSet",
+                      facts: [
+                        { title: "Commits", value: $commits },
+                        { title: "File changes", value: $files },
+                        { title: "Additions", value: $additions },
+                        { title: "Deletions", value: $deletions }
+                      ]
+                    }
+                  ],
+                  actions: [
+                    { type: "Action.OpenUrl", title: "View pull request", url: $url }
+                  ]
+                }
+              }]
+            }' | curl -sSf -X POST -H "Content-Type: application/json" -d @- "$WEBHOOK_URL"
