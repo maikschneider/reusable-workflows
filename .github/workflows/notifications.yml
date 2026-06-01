@@ -67,6 +67,7 @@ jobs:
             --arg avatar "$RELEASE_AUTHOR_AVATAR" \
             '{
               type: "message",
+              summary: $title,
               attachments: [{
                 contentType: "application/vnd.microsoft.card.adaptive",
                 contentUrl: null,
@@ -143,6 +144,7 @@ jobs:
             --arg labels "$ISSUE_LABELS" \
             '{
               type: "message",
+              summary: $title,
               attachments: [{
                 contentType: "application/vnd.microsoft.card.adaptive",
                 contentUrl: null,
@@ -212,6 +214,7 @@ jobs:
             --arg state_reason "$ISSUE_STATE_REASON" \
             '{
               type: "message",
+              summary: $title,
               attachments: [{
                 contentType: "application/vnd.microsoft.card.adaptive",
                 contentUrl: null,
@@ -277,6 +280,7 @@ jobs:
             --arg avatar "$COMMENT_AUTHOR_AVATAR" \
             '{
               type: "message",
+              summary: $title,
               attachments: [{
                 contentType: "application/vnd.microsoft.card.adaptive",
                 contentUrl: null,
@@ -340,6 +344,7 @@ jobs:
             --arg avatar "$COMMENT_AUTHOR_AVATAR" \
             '{
               type: "message",
+              summary: $title,
               attachments: [{
                 contentType: "application/vnd.microsoft.card.adaptive",
                 contentUrl: null,
@@ -406,6 +411,7 @@ jobs:
             --arg description "$REPO_DESCRIPTION" \
             '{
               type: "message",
+              summary: $title,
               attachments: [{
                 contentType: "application/vnd.microsoft.card.adaptive",
                 contentUrl: null,
@@ -493,6 +499,7 @@ jobs:
             --arg forks "$REPO_FORKS" \
             '{
               type: "message",
+              summary: $title,
               attachments: [{
                 contentType: "application/vnd.microsoft.card.adaptive",
                 contentUrl: null,
