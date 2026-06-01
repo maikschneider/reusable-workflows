@@ -306,11 +306,24 @@ jobs:
           IMAGE_URL: ${{ steps.image.outputs.url }}
           REPO_NAME: ${{ github.repository }}
           ACTOR: ${{ github.actor }}
+          ACTOR_URL: ${{ github.event.sender.html_url }}
+          ACTOR_AVATAR: ${{ github.event.sender.avatar_url }}
+          REPO_URL: ${{ github.event.repository.html_url }}
+          REPO_STARS: ${{ github.event.repository.stargazers_count }}
+          REPO_FORKS: ${{ github.event.repository.forks_count }}
+          REPO_DESCRIPTION: ${{ github.event.repository.description }}
         run: |
           jq -n \
             --arg repo "$REPO_NAME" \
             --arg image "$IMAGE_URL" \
             --arg title "⭐️ New star on ${REPO_NAME} by ${ACTOR}!" \
+            --arg actor "$ACTOR" \
+            --arg actor_url "$ACTOR_URL" \
+            --arg avatar "$ACTOR_AVATAR" \
+            --arg repo_url "$REPO_URL" \
+            --arg stars "$REPO_STARS" \
+            --arg forks "$REPO_FORKS" \
+            --arg description "$REPO_DESCRIPTION" \
             '{
               type: "message",
               attachments: [{
@@ -329,7 +342,30 @@ jobs:
                     else
                       { type: "TextBlock", text: $repo, weight: "bolder", size: "small", color: "accent" }
                     end),
-                    { type: "TextBlock", size: "medium", weight: "bolder", text: $title, color: "warning" }
+                    { type: "TextBlock", size: "medium", weight: "bolder", text: $title, color: "warning" },
+                    {
+                      type: "ColumnSet",
+                      columns: [
+                        { type: "Column", width: "auto", items: [{ type: "Image", url: $avatar, size: "small", style: "person" }] },
+                        { type: "Column", width: "stretch", verticalContentAlignment: "center", items: [{ type: "TextBlock", text: ("[\($actor)](\($actor_url))"), weight: "bolder" }] }
+                      ]
+                    },
+                    (if $description != "" then
+                      { type: "TextBlock", text: $description, wrap: true, size: "small", isSubtle: true }
+                    else
+                      null
+                    end),
+                    {
+                      type: "FactSet",
+                      facts: [
+                        { title: "⭐ Stars", value: $stars },
+                        { title: "🍴 Forks", value: $forks }
+                      ]
+                    }
+                  ] | map(select(. != null)),
+                  actions: [
+                    { type: "Action.OpenUrl", title: "View repository", url: $repo_url },
+                    { type: "Action.OpenUrl", title: "View stargazer", url: $actor_url }
                   ]
                 }
               }]
