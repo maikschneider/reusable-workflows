@@ -39,11 +39,17 @@ jobs:
           WEBHOOK_URL: ${{ secrets.teams-webhook-url }}
           IMAGE_URL: ${{ steps.image.outputs.url }}
           REPO_NAME: ${{ github.repository }}
+          REPO_URL: ${{ github.event.repository.html_url }}
+          REPO_STARS: ${{ github.event.repository.stargazers_count }}
+          REPO_FORKS: ${{ github.event.repository.forks_count }}
           RELEASE_TAG: ${{ github.event.release.tag_name }}
           RELEASE_NAME: ${{ github.event.release.name }}
           RELEASE_BODY: ${{ github.event.release.body }}
           RELEASE_URL: ${{ github.event.release.html_url }}
           RELEASE_ZIP: ${{ github.event.release.zipball_url }}
+          RELEASE_AUTHOR: ${{ github.event.release.author.login }}
+          RELEASE_AUTHOR_URL: ${{ github.event.release.author.html_url }}
+          RELEASE_AUTHOR_AVATAR: ${{ github.event.release.author.avatar_url }}
         run: |
           jq -n \
             --arg repo "$REPO_NAME" \
@@ -53,6 +59,12 @@ jobs:
             --arg body "$(echo "$RELEASE_BODY" | head -c 2000)" \
             --arg url "$RELEASE_URL" \
             --arg zip "$RELEASE_ZIP" \
+            --arg repo_url "$REPO_URL" \
+            --arg stars "$REPO_STARS" \
+            --arg forks "$REPO_FORKS" \
+            --arg author "$RELEASE_AUTHOR" \
+            --arg author_url "$RELEASE_AUTHOR_URL" \
+            --arg avatar "$RELEASE_AUTHOR_AVATAR" \
             '{
               type: "message",
               attachments: [{
@@ -72,12 +84,27 @@ jobs:
                       { type: "TextBlock", text: $repo, weight: "bolder", size: "small", color: "accent" }
                     end),
                     { type: "TextBlock", size: "medium", weight: "bolder", text: $title, color: "good" },
+                    {
+                      type: "ColumnSet",
+                      columns: [
+                        { type: "Column", width: "auto", items: [{ type: "Image", url: $avatar, size: "small", style: "person" }] },
+                        { type: "Column", width: "stretch", verticalContentAlignment: "center", items: [{ type: "TextBlock", text: ("[\($author)](\($author_url))"), weight: "bolder" }] }
+                      ]
+                    },
                     { type: "TextBlock", text: $name, weight: "bolder", wrap: true },
-                    { type: "TextBlock", text: $body, wrap: true }
+                    { type: "TextBlock", text: $body, wrap: true },
+                    {
+                      type: "FactSet",
+                      facts: [
+                        { title: "⭐ Stars", value: $stars },
+                        { title: "🍴 Forks", value: $forks }
+                      ]
+                    }
                   ],
                   actions: [
                     { type: "Action.OpenUrl", title: "Show release", url: $url },
-                    { type: "Action.OpenUrl", title: "Download zip", url: $zip }
+                    { type: "Action.OpenUrl", title: "Download zip", url: $zip },
+                    { type: "Action.OpenUrl", title: "View repository", url: $repo_url }
                   ]
                 }
               }]
@@ -89,6 +116,9 @@ jobs:
           WEBHOOK_URL: ${{ secrets.teams-webhook-url }}
           IMAGE_URL: ${{ steps.image.outputs.url }}
           REPO_NAME: ${{ github.repository }}
+          REPO_URL: ${{ github.event.repository.html_url }}
+          REPO_STARS: ${{ github.event.repository.stargazers_count }}
+          REPO_FORKS: ${{ github.event.repository.forks_count }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}
           ISSUE_TITLE: ${{ github.event.issue.title }}
           ISSUE_BODY: ${{ github.event.issue.body }}
@@ -96,6 +126,7 @@ jobs:
           ISSUE_AUTHOR: ${{ github.event.issue.user.login }}
           ISSUE_AUTHOR_URL: ${{ github.event.issue.user.html_url }}
           ISSUE_AUTHOR_AVATAR: ${{ github.event.issue.user.avatar_url }}
+          ISSUE_LABELS: ${{ join(github.event.issue.labels.*.name, ', ') }}
         run: |
           jq -n \
             --arg repo "$REPO_NAME" \
@@ -106,6 +137,10 @@ jobs:
             --arg author "$ISSUE_AUTHOR" \
             --arg author_url "$ISSUE_AUTHOR_URL" \
             --arg avatar "$ISSUE_AUTHOR_AVATAR" \
+            --arg repo_url "$REPO_URL" \
+            --arg stars "$REPO_STARS" \
+            --arg forks "$REPO_FORKS" \
+            --arg labels "$ISSUE_LABELS" \
             '{
               type: "message",
               attachments: [{
@@ -129,13 +164,22 @@ jobs:
                       type: "ColumnSet",
                       columns: [
                         { type: "Column", width: "auto", items: [{ type: "Image", url: $avatar, size: "small", style: "person" }] },
-                        { type: "Column", width: "stretch", items: [{ type: "TextBlock", text: ("[\($author)](\($author_url))"), weight: "bolder" }] }
+                        { type: "Column", width: "stretch", verticalContentAlignment: "center", items: [{ type: "TextBlock", text: ("[\($author)](\($author_url))"), weight: "bolder" }] }
                       ]
                     },
-                    { type: "TextBlock", text: $body, wrap: true }
+                    { type: "TextBlock", text: $body, wrap: true },
+                    {
+                      type: "FactSet",
+                      facts: ([
+                        (if $labels != "" then { title: "🏷️ Labels", value: $labels } else null end),
+                        { title: "⭐ Stars", value: $stars },
+                        { title: "🍴 Forks", value: $forks }
+                      ] | map(select(. != null)))
+                    }
                   ],
                   actions: [
-                    { type: "Action.OpenUrl", title: "View issue", url: $url }
+                    { type: "Action.OpenUrl", title: "View issue", url: $url },
+                    { type: "Action.OpenUrl", title: "View repository", url: $repo_url }
                   ]
                 }
               }]
@@ -147,15 +191,25 @@ jobs:
           WEBHOOK_URL: ${{ secrets.teams-webhook-url }}
           IMAGE_URL: ${{ steps.image.outputs.url }}
           REPO_NAME: ${{ github.repository }}
+          REPO_URL: ${{ github.event.repository.html_url }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}
           ISSUE_TITLE: ${{ github.event.issue.title }}
           ISSUE_URL: ${{ github.event.issue.html_url }}
+          CLOSED_BY: ${{ github.event.sender.login }}
+          CLOSED_BY_URL: ${{ github.event.sender.html_url }}
+          CLOSED_BY_AVATAR: ${{ github.event.sender.avatar_url }}
+          ISSUE_STATE_REASON: ${{ github.event.issue.state_reason }}
         run: |
           jq -n \
             --arg repo "$REPO_NAME" \
             --arg image "$IMAGE_URL" \
             --arg title "🏁 Issue #${ISSUE_NUMBER} closed: \"${ISSUE_TITLE}\"" \
             --arg url "$ISSUE_URL" \
+            --arg repo_url "$REPO_URL" \
+            --arg closed_by "$CLOSED_BY" \
+            --arg closed_by_url "$CLOSED_BY_URL" \
+            --arg closed_by_avatar "$CLOSED_BY_AVATAR" \
+            --arg state_reason "$ISSUE_STATE_REASON" \
             '{
               type: "message",
               attachments: [{
@@ -174,10 +228,23 @@ jobs:
                     else
                       { type: "TextBlock", text: $repo, weight: "bolder", size: "small", color: "accent" }
                     end),
-                    { type: "TextBlock", size: "medium", weight: "bolder", text: $title, color: "accent" }
-                  ],
+                    { type: "TextBlock", size: "medium", weight: "bolder", text: $title, color: "good" },
+                    {
+                      type: "ColumnSet",
+                      columns: [
+                        { type: "Column", width: "auto", items: [{ type: "Image", url: $closed_by_avatar, size: "small", style: "person" }] },
+                        { type: "Column", width: "stretch", verticalContentAlignment: "center", items: [{ type: "TextBlock", text: ("Closed by [\($closed_by)](\($closed_by_url))"), weight: "bolder" }] }
+                      ]
+                    },
+                    (if $state_reason != "" then
+                      { type: "TextBlock", text: ("Reason: \($state_reason)"), size: "small", isSubtle: true, wrap: true }
+                    else
+                      null
+                    end)
+                  ] | map(select(. != null)),
                   actions: [
-                    { type: "Action.OpenUrl", title: "View issue", url: $url }
+                    { type: "Action.OpenUrl", title: "View issue", url: $url },
+                    { type: "Action.OpenUrl", title: "View repository", url: $repo_url }
                   ]
                 }
               }]
@@ -191,6 +258,7 @@ jobs:
           REPO_NAME: ${{ github.repository }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}
           ISSUE_TITLE: ${{ github.event.issue.title }}
+          ISSUE_URL: ${{ github.event.issue.html_url }}
           COMMENT_BODY: ${{ github.event.comment.body }}
           COMMENT_URL: ${{ github.event.comment.html_url }}
           COMMENT_AUTHOR: ${{ github.event.comment.user.login }}
@@ -203,6 +271,7 @@ jobs:
             --arg title "💬 New comment on issue #${ISSUE_NUMBER}: \"${ISSUE_TITLE}\"" \
             --arg body "$(echo "$COMMENT_BODY" | head -c 2000)" \
             --arg url "$COMMENT_URL" \
+            --arg issue_url "$ISSUE_URL" \
             --arg author "$COMMENT_AUTHOR" \
             --arg author_url "$COMMENT_AUTHOR_URL" \
             --arg avatar "$COMMENT_AUTHOR_AVATAR" \
@@ -229,13 +298,14 @@ jobs:
                       type: "ColumnSet",
                       columns: [
                         { type: "Column", width: "auto", items: [{ type: "Image", url: $avatar, size: "small", style: "person" }] },
-                        { type: "Column", width: "stretch", items: [{ type: "TextBlock", text: ("[\($author)](\($author_url))"), weight: "bolder" }] }
+                        { type: "Column", width: "stretch", verticalContentAlignment: "center", items: [{ type: "TextBlock", text: ("[\($author)](\($author_url))"), weight: "bolder" }] }
                       ]
                     },
                     { type: "TextBlock", text: $body, wrap: true }
                   ],
                   actions: [
-                    { type: "Action.OpenUrl", title: "View comment", url: $url }
+                    { type: "Action.OpenUrl", title: "View comment", url: $url },
+                    { type: "Action.OpenUrl", title: "View issue", url: $issue_url }
                   ]
                 }
               }]
@@ -249,8 +319,10 @@ jobs:
           REPO_NAME: ${{ github.repository }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
           PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
           COMMENT_BODY: ${{ github.event.comment.body }}
           COMMENT_URL: ${{ github.event.comment.html_url }}
+          COMMENT_PATH: ${{ github.event.comment.path }}
           COMMENT_AUTHOR: ${{ github.event.comment.user.login }}
           COMMENT_AUTHOR_URL: ${{ github.event.comment.user.html_url }}
           COMMENT_AUTHOR_AVATAR: ${{ github.event.comment.user.avatar_url }}
@@ -261,6 +333,8 @@ jobs:
             --arg title "💬 New review comment on PR #${PR_NUMBER}: \"${PR_TITLE}\"" \
             --arg body "$(echo "$COMMENT_BODY" | head -c 2000)" \
             --arg url "$COMMENT_URL" \
+            --arg pr_url "$PR_URL" \
+            --arg path "$COMMENT_PATH" \
             --arg author "$COMMENT_AUTHOR" \
             --arg author_url "$COMMENT_AUTHOR_URL" \
             --arg avatar "$COMMENT_AUTHOR_AVATAR" \
@@ -287,13 +361,19 @@ jobs:
                       type: "ColumnSet",
                       columns: [
                         { type: "Column", width: "auto", items: [{ type: "Image", url: $avatar, size: "small", style: "person" }] },
-                        { type: "Column", width: "stretch", items: [{ type: "TextBlock", text: ("[\($author)](\($author_url))"), weight: "bolder" }] }
+                        { type: "Column", width: "stretch", verticalContentAlignment: "center", items: [{ type: "TextBlock", text: ("[\($author)](\($author_url))"), weight: "bolder" }] }
                       ]
                     },
+                    (if $path != "" then
+                      { type: "TextBlock", text: ("📄 \($path)"), size: "small", isSubtle: true, wrap: true }
+                    else
+                      null
+                    end),
                     { type: "TextBlock", text: $body, wrap: true }
-                  ],
+                  ] | map(select(. != null)),
                   actions: [
-                    { type: "Action.OpenUrl", title: "View comment", url: $url }
+                    { type: "Action.OpenUrl", title: "View comment", url: $url },
+                    { type: "Action.OpenUrl", title: "View pull request", url: $pr_url }
                   ]
                 }
               }]
@@ -377,6 +457,9 @@ jobs:
           WEBHOOK_URL: ${{ secrets.teams-webhook-url }}
           IMAGE_URL: ${{ steps.image.outputs.url }}
           REPO_NAME: ${{ github.repository }}
+          REPO_URL: ${{ github.event.repository.html_url }}
+          REPO_STARS: ${{ github.event.repository.stargazers_count }}
+          REPO_FORKS: ${{ github.event.repository.forks_count }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
           PR_TITLE: ${{ github.event.pull_request.title }}
           PR_BODY: ${{ github.event.pull_request.body }}
@@ -388,6 +471,8 @@ jobs:
           PR_CHANGED_FILES: ${{ github.event.pull_request.changed_files }}
           PR_ADDITIONS: ${{ github.event.pull_request.additions }}
           PR_DELETIONS: ${{ github.event.pull_request.deletions }}
+          PR_HEAD: ${{ github.event.pull_request.head.ref }}
+          PR_BASE: ${{ github.event.pull_request.base.ref }}
         run: |
           jq -n \
             --arg repo "$REPO_NAME" \
@@ -395,6 +480,7 @@ jobs:
             --arg title "🛠️ New pull request #${PR_NUMBER}: \"${PR_TITLE}\"" \
             --arg body "$(echo "$PR_BODY" | head -c 2000)" \
             --arg url "$PR_URL" \
+            --arg repo_url "$REPO_URL" \
             --arg author "$PR_AUTHOR" \
             --arg author_url "$PR_AUTHOR_URL" \
             --arg avatar "$PR_AUTHOR_AVATAR" \
@@ -402,6 +488,9 @@ jobs:
             --arg files "$PR_CHANGED_FILES" \
             --arg additions "+${PR_ADDITIONS}" \
             --arg deletions "-${PR_DELETIONS}" \
+            --arg branch "${PR_HEAD} → ${PR_BASE}" \
+            --arg stars "$REPO_STARS" \
+            --arg forks "$REPO_FORKS" \
             '{
               type: "message",
               attachments: [{
@@ -425,22 +514,26 @@ jobs:
                       type: "ColumnSet",
                       columns: [
                         { type: "Column", width: "auto", items: [{ type: "Image", url: $avatar, size: "small", style: "person" }] },
-                        { type: "Column", width: "stretch", items: [{ type: "TextBlock", text: ("[\($author)](\($author_url))"), weight: "bolder" }] }
+                        { type: "Column", width: "stretch", verticalContentAlignment: "center", items: [{ type: "TextBlock", text: ("[\($author)](\($author_url))"), weight: "bolder" }] }
                       ]
                     },
                     { type: "TextBlock", text: $body, wrap: true },
                     {
                       type: "FactSet",
                       facts: [
+                        { title: "🔀 Branch", value: $branch },
                         { title: "Commits", value: $commits },
                         { title: "File changes", value: $files },
                         { title: "Additions", value: $additions },
-                        { title: "Deletions", value: $deletions }
+                        { title: "Deletions", value: $deletions },
+                        { title: "⭐ Stars", value: $stars },
+                        { title: "🍴 Forks", value: $forks }
                       ]
                     }
                   ],
                   actions: [
-                    { type: "Action.OpenUrl", title: "View pull request", url: $url }
+                    { type: "Action.OpenUrl", title: "View pull request", url: $url },
+                    { type: "Action.OpenUrl", title: "View repository", url: $repo_url }
                   ]
                 }
               }]
