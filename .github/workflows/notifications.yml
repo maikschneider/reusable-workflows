@@ -19,11 +19,25 @@ jobs:
     runs-on: ubuntu-latest
     steps:
 
+      - name: Process image URL
+        id: image
+        env:
+          RAW_IMAGE_URL: ${{ inputs.image-url }}
+        run: |
+          # Strip query string/fragment for extension check
+          url_path="${RAW_IMAGE_URL%%\?*}"
+          url_path="${url_path%%#*}"
+          if [[ "$url_path" == *.svg ]]; then
+            echo "url=https://images.weserv.nl/?url=$(printf '%s' "$RAW_IMAGE_URL" | jq -sRr @uri)&output=png&w=64" >> "$GITHUB_OUTPUT"
+          else
+            echo "url=$RAW_IMAGE_URL" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: New release
         if: github.event_name == 'release' && github.event.action == 'published'
         env:
           WEBHOOK_URL: ${{ secrets.teams-webhook-url }}
-          IMAGE_URL: ${{ inputs.image-url }}
+          IMAGE_URL: ${{ steps.image.outputs.url }}
           REPO_NAME: ${{ github.repository }}
           RELEASE_TAG: ${{ github.event.release.tag_name }}
           RELEASE_NAME: ${{ github.event.release.name }}
@@ -52,7 +66,7 @@ jobs:
                     (if $image != "" then
                       { type: "ColumnSet", columns: [
                         { type: "Column", width: "auto", items: [{ type: "Image", url: $image, size: "small" }] },
-                        { type: "Column", width: "stretch", items: [{ type: "TextBlock", text: $repo, weight: "bolder", size: "small", color: "accent" }] }
+                        { type: "Column", width: "stretch", verticalContentAlignment: "center", items: [{ type: "TextBlock", text: $repo, weight: "bolder", size: "small", color: "accent" }] }
                       ]}
                     else
                       { type: "TextBlock", text: $repo, weight: "bolder", size: "small", color: "accent" }
@@ -73,7 +87,7 @@ jobs:
         if: github.event_name == 'issues' && github.event.action == 'opened'
         env:
           WEBHOOK_URL: ${{ secrets.teams-webhook-url }}
-          IMAGE_URL: ${{ inputs.image-url }}
+          IMAGE_URL: ${{ steps.image.outputs.url }}
           REPO_NAME: ${{ github.repository }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}
           ISSUE_TITLE: ${{ github.event.issue.title }}
@@ -105,7 +119,7 @@ jobs:
                     (if $image != "" then
                       { type: "ColumnSet", columns: [
                         { type: "Column", width: "auto", items: [{ type: "Image", url: $image, size: "small" }] },
-                        { type: "Column", width: "stretch", items: [{ type: "TextBlock", text: $repo, weight: "bolder", size: "small", color: "accent" }] }
+                        { type: "Column", width: "stretch", verticalContentAlignment: "center", items: [{ type: "TextBlock", text: $repo, weight: "bolder", size: "small", color: "accent" }] }
                       ]}
                     else
                       { type: "TextBlock", text: $repo, weight: "bolder", size: "small", color: "accent" }
@@ -131,7 +145,7 @@ jobs:
         if: github.event_name == 'issues' && github.event.action == 'closed'
         env:
           WEBHOOK_URL: ${{ secrets.teams-webhook-url }}
-          IMAGE_URL: ${{ inputs.image-url }}
+          IMAGE_URL: ${{ steps.image.outputs.url }}
           REPO_NAME: ${{ github.repository }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}
           ISSUE_TITLE: ${{ github.event.issue.title }}
@@ -155,7 +169,7 @@ jobs:
                     (if $image != "" then
                       { type: "ColumnSet", columns: [
                         { type: "Column", width: "auto", items: [{ type: "Image", url: $image, size: "small" }] },
-                        { type: "Column", width: "stretch", items: [{ type: "TextBlock", text: $repo, weight: "bolder", size: "small", color: "accent" }] }
+                        { type: "Column", width: "stretch", verticalContentAlignment: "center", items: [{ type: "TextBlock", text: $repo, weight: "bolder", size: "small", color: "accent" }] }
                       ]}
                     else
                       { type: "TextBlock", text: $repo, weight: "bolder", size: "small", color: "accent" }
@@ -173,7 +187,7 @@ jobs:
         if: github.event_name == 'issue_comment' && github.event.action == 'created' && github.actor != 'coderabbitai' && github.actor != 'codecov-commenter' && github.event.sender.type != 'Bot'
         env:
           WEBHOOK_URL: ${{ secrets.teams-webhook-url }}
-          IMAGE_URL: ${{ inputs.image-url }}
+          IMAGE_URL: ${{ steps.image.outputs.url }}
           REPO_NAME: ${{ github.repository }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}
           ISSUE_TITLE: ${{ github.event.issue.title }}
@@ -205,7 +219,7 @@ jobs:
                     (if $image != "" then
                       { type: "ColumnSet", columns: [
                         { type: "Column", width: "auto", items: [{ type: "Image", url: $image, size: "small" }] },
-                        { type: "Column", width: "stretch", items: [{ type: "TextBlock", text: $repo, weight: "bolder", size: "small", color: "accent" }] }
+                        { type: "Column", width: "stretch", verticalContentAlignment: "center", items: [{ type: "TextBlock", text: $repo, weight: "bolder", size: "small", color: "accent" }] }
                       ]}
                     else
                       { type: "TextBlock", text: $repo, weight: "bolder", size: "small", color: "accent" }
@@ -231,7 +245,7 @@ jobs:
         if: github.event_name == 'pull_request_review_comment' && github.event.action == 'created' && github.actor != 'coderabbitai' && github.actor != 'codecov-commenter' && github.event.sender.type != 'Bot'
         env:
           WEBHOOK_URL: ${{ secrets.teams-webhook-url }}
-          IMAGE_URL: ${{ inputs.image-url }}
+          IMAGE_URL: ${{ steps.image.outputs.url }}
           REPO_NAME: ${{ github.repository }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
           PR_TITLE: ${{ github.event.pull_request.title }}
@@ -263,7 +277,7 @@ jobs:
                     (if $image != "" then
                       { type: "ColumnSet", columns: [
                         { type: "Column", width: "auto", items: [{ type: "Image", url: $image, size: "small" }] },
-                        { type: "Column", width: "stretch", items: [{ type: "TextBlock", text: $repo, weight: "bolder", size: "small", color: "accent" }] }
+                        { type: "Column", width: "stretch", verticalContentAlignment: "center", items: [{ type: "TextBlock", text: $repo, weight: "bolder", size: "small", color: "accent" }] }
                       ]}
                     else
                       { type: "TextBlock", text: $repo, weight: "bolder", size: "small", color: "accent" }
@@ -289,7 +303,7 @@ jobs:
         if: github.event_name == 'watch' && github.event.action == 'started'
         env:
           WEBHOOK_URL: ${{ secrets.teams-webhook-url }}
-          IMAGE_URL: ${{ inputs.image-url }}
+          IMAGE_URL: ${{ steps.image.outputs.url }}
           REPO_NAME: ${{ github.repository }}
           ACTOR: ${{ github.actor }}
         run: |
@@ -310,7 +324,7 @@ jobs:
                     (if $image != "" then
                       { type: "ColumnSet", columns: [
                         { type: "Column", width: "auto", items: [{ type: "Image", url: $image, size: "small" }] },
-                        { type: "Column", width: "stretch", items: [{ type: "TextBlock", text: $repo, weight: "bolder", size: "small", color: "accent" }] }
+                        { type: "Column", width: "stretch", verticalContentAlignment: "center", items: [{ type: "TextBlock", text: $repo, weight: "bolder", size: "small", color: "accent" }] }
                       ]}
                     else
                       { type: "TextBlock", text: $repo, weight: "bolder", size: "small", color: "accent" }
@@ -325,7 +339,7 @@ jobs:
         if: github.event_name == 'pull_request_target' && github.event.action == 'opened' && github.actor != 'renovate' && github.event.sender.type != 'Bot'
         env:
           WEBHOOK_URL: ${{ secrets.teams-webhook-url }}
-          IMAGE_URL: ${{ inputs.image-url }}
+          IMAGE_URL: ${{ steps.image.outputs.url }}
           REPO_NAME: ${{ github.repository }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
           PR_TITLE: ${{ github.event.pull_request.title }}
@@ -365,7 +379,7 @@ jobs:
                     (if $image != "" then
                       { type: "ColumnSet", columns: [
                         { type: "Column", width: "auto", items: [{ type: "Image", url: $image, size: "small" }] },
-                        { type: "Column", width: "stretch", items: [{ type: "TextBlock", text: $repo, weight: "bolder", size: "small", color: "accent" }] }
+                        { type: "Column", width: "stretch", verticalContentAlignment: "center", items: [{ type: "TextBlock", text: $repo, weight: "bolder", size: "small", color: "accent" }] }
                       ]}
                     else
                       { type: "TextBlock", text: $repo, weight: "bolder", size: "small", color: "accent" }
