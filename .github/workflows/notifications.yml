@@ -55,7 +55,8 @@ jobs:
           # are not rendered as oversized headlines in the Teams card, then crop.
           body="$(printf '%s' "$RELEASE_BODY" | sed -E 's/^[[:space:]]*#{1,6}[[:space:]]+(.*)$/**\1**/')"
           if [ "${#body}" -gt 1500 ]; then
-            body="$(printf '%s' "$body" | head -c 1500)…"
+            # Truncate then drop any partial multi-byte char left at the boundary.
+            body="$(printf '%s' "$body" | head -c 1500 | iconv -f UTF-8 -t UTF-8 -c || true)…"
           fi
           jq -n \
             --arg repo "$REPO_NAME" \
@@ -142,7 +143,8 @@ jobs:
           # Crop long issue bodies so they are not shown in full length.
           body="$ISSUE_BODY"
           if [ "${#body}" -gt 800 ]; then
-            body="$(printf '%s' "$body" | head -c 800)…"
+            # Truncate then drop any partial multi-byte char left at the boundary.
+            body="$(printf '%s' "$body" | head -c 800 | iconv -f UTF-8 -t UTF-8 -c || true)…"
           fi
           jq -n \
             --arg repo "$REPO_NAME" \
@@ -498,7 +500,8 @@ jobs:
           # Crop long pull request bodies so they are not shown in full length.
           body="$PR_BODY"
           if [ "${#body}" -gt 800 ]; then
-            body="$(printf '%s' "$body" | head -c 800)…"
+            # Truncate then drop any partial multi-byte char left at the boundary.
+            body="$(printf '%s' "$body" | head -c 800 | iconv -f UTF-8 -t UTF-8 -c || true)…"
           fi
           jq -n \
             --arg repo "$REPO_NAME" \
