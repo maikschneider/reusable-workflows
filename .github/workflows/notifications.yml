@@ -51,12 +51,19 @@ jobs:
           RELEASE_AUTHOR_URL: ${{ github.event.release.author.html_url }}
           RELEASE_AUTHOR_AVATAR: ${{ github.event.release.author.avatar_url }}
         run: |
+          # Convert markdown headings (e.g. "## What's Changed") to bold so they
+          # are not rendered as oversized headlines in the Teams card, then crop.
+          body="$(printf '%s' "$RELEASE_BODY" | sed -E 's/^[[:space:]]*#{1,6}[[:space:]]+(.*)$/**\1**/')"
+          if [ "${#body}" -gt 1500 ]; then
+            # Truncate then drop any partial multi-byte char left at the boundary.
+            body="$(printf '%s' "$body" | head -c 1500 | iconv -f UTF-8 -t UTF-8 -c || true)…"
+          fi
           jq -n \
             --arg repo "$REPO_NAME" \
             --arg image "$IMAGE_URL" \
             --arg title "📦 New release: $RELEASE_TAG" \
             --arg name "$RELEASE_NAME" \
-            --arg body "$(echo "$RELEASE_BODY" | head -c 2000)" \
+            --arg body "$body" \
             --arg url "$RELEASE_URL" \
             --arg zip "$RELEASE_ZIP" \
             --arg repo_url "$REPO_URL" \
@@ -85,13 +92,17 @@ jobs:
                       { type: "TextBlock", text: $repo, weight: "bolder", size: "small", color: "accent" }
                     end),
                     { type: "TextBlock", size: "medium", weight: "bolder", text: $title, color: "good" },
-                    {
-                      type: "ColumnSet",
-                      columns: [
-                        { type: "Column", width: "auto", items: [{ type: "Image", url: $avatar, size: "small", style: "person" }] },
-                        { type: "Column", width: "stretch", verticalContentAlignment: "center", items: [{ type: "TextBlock", text: ("[\($author)](\($author_url))"), weight: "bolder" }] }
-                      ]
-                    },
+                    (if $image != "" then
+                      {
+                        type: "ColumnSet",
+                        columns: [
+                          { type: "Column", width: "auto", items: [{ type: "Image", url: $image, size: "small" }] },
+                          { type: "Column", width: "stretch", verticalContentAlignment: "center", items: [{ type: "TextBlock", text: ("by [\($author)](\($author_url))"), weight: "bolder" }] }
+                        ]
+                      }
+                    else
+                      { type: "TextBlock", text: ("by [\($author)](\($author_url))"), weight: "bolder" }
+                    end),
                     { type: "TextBlock", text: $name, weight: "bolder", wrap: true },
                     { type: "TextBlock", text: $body, wrap: true },
                     {
@@ -129,11 +140,17 @@ jobs:
           ISSUE_AUTHOR_AVATAR: ${{ github.event.issue.user.avatar_url }}
           ISSUE_LABELS: ${{ join(github.event.issue.labels.*.name, ', ') }}
         run: |
+          # Crop long issue bodies so they are not shown in full length.
+          body="$ISSUE_BODY"
+          if [ "${#body}" -gt 800 ]; then
+            # Truncate then drop any partial multi-byte char left at the boundary.
+            body="$(printf '%s' "$body" | head -c 800 | iconv -f UTF-8 -t UTF-8 -c || true)…"
+          fi
           jq -n \
             --arg repo "$REPO_NAME" \
             --arg image "$IMAGE_URL" \
             --arg title "🔥 New issue #${ISSUE_NUMBER}: \"${ISSUE_TITLE}\"" \
-            --arg body "$(echo "$ISSUE_BODY" | head -c 2000)" \
+            --arg body "$body" \
             --arg url "$ISSUE_URL" \
             --arg author "$ISSUE_AUTHOR" \
             --arg author_url "$ISSUE_AUTHOR_URL" \
@@ -480,11 +497,17 @@ jobs:
           PR_HEAD: ${{ github.event.pull_request.head.ref }}
           PR_BASE: ${{ github.event.pull_request.base.ref }}
         run: |
+          # Crop long pull request bodies so they are not shown in full length.
+          body="$PR_BODY"
+          if [ "${#body}" -gt 800 ]; then
+            # Truncate then drop any partial multi-byte char left at the boundary.
+            body="$(printf '%s' "$body" | head -c 800 | iconv -f UTF-8 -t UTF-8 -c || true)…"
+          fi
           jq -n \
             --arg repo "$REPO_NAME" \
             --arg image "$IMAGE_URL" \
             --arg title "🛠️ New pull request #${PR_NUMBER}: \"${PR_TITLE}\"" \
-            --arg body "$(echo "$PR_BODY" | head -c 2000)" \
+            --arg body "$body" \
             --arg url "$PR_URL" \
             --arg repo_url "$REPO_URL" \
             --arg author "$PR_AUTHOR" \
