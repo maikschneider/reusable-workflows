@@ -59,9 +59,11 @@ jobs:
 
 ## TYPO3 extension release
 
-This action creates a new github release, if not existing for the pushed tag. It uses [typo3/tailor](https://github.com/TYPO3/tailor) 2.x (PHP 8.5) to publish the extension to the TER.
+This action publishes the extension to the TER with [typo3/tailor](https://github.com/TYPO3/tailor) 2.x (PHP 8.5) when a tag is pushed. It does not create a GitHub release.
 
-Only tags like `1.2.3` are published. Bump the version in `ext_emconf.php` and in `composer.json` (`extra.typo3/cms.version`, if set) before tagging: the job fails if either does not match the tag.
+Only tags like `1.2.3` are published. Bump the version in `ext_emconf.php` and in `composer.json` (`version` and `extra.typo3/cms.version`, if set) before tagging: the job fails if any of them does not match the tag.
+
+The TER upload comment links to `CHANGELOG.md` at the tag, or to the GitHub release page of the tag if the repository has no `CHANGELOG.md`.
 
 Input|Type|Required|Description
 -|-|-|-
